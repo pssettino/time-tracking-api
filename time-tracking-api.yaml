@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: time-tracking-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: time-tracking-api
+  template:
+    metadata:
+      labels:
+        app: time-tracking-api
+    spec:
+      containers:         
+        - name: time-tracking-api
+          image: scrumboxit/time-tracking-api
+          ports:
+            - containerPort: 9093
+          env:
+            - name: REGISTRY
+              value: registry-api
+            - name: MONGODB_HOST
+              value: mongo
+            - name: MONGO_PORT
+              value: "27017"
+            - name: SERVER_URL
+              value: time-tracking-api
