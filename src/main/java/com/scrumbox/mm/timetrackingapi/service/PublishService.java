@@ -3,7 +3,7 @@ package com.scrumbox.mm.timetrackingapi.service;
 import com.scrumbox.mm.timetrackingapi.commons.QueueConstants;
 import com.scrumbox.mm.timetrackingapi.commons.QueueEvents;
 import com.scrumbox.mm.timetrackingapi.commons.QueueMessage;
-import com.scrumbox.mm.timetrackingapi.persistence.domain.Fichaje;
+import com.scrumbox.mm.timetrackingapi.persistence.domain.Tracking;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -23,11 +23,11 @@ public class PublishService {
         this.rabbitTemplate = rabbitTemplate;
     }
 
-    public void notifyFichajeCreated(Fichaje fichaje) {
+    public void notifyFichajeCreated(Tracking tracking) {
         QueueMessage message = new QueueMessage();
         message.setEventName(QueueEvents.FICHAJE_CREATED);
-        message.setData(fichaje.getDni());
-        log.info("About to send message: {}" ,fichaje.getDni());
+        message.setData(tracking.getDni());
+        log.info("About to send message: {}" , tracking.getDni());
         rabbitTemplate.convertAndSend(QueueConstants.EXCHANGE_NAME, QueueConstants.ROUTING_KEY, message);
         log.info("Sent Message");
 

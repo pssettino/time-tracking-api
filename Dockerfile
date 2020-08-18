@@ -3,4 +3,4 @@ COPY build/libs/time-tracking-api-0.0.1.jar time-tracking-api.jar
 
 ENTRYPOINT ["java","-jar","/time-tracking-api.jar"]
 
-EXPOSE 9093
+EXPOSE 9094
