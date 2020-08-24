@@ -13,16 +13,16 @@ public class TrackingServiceTest {
         TimeTracking act;
         DateTime startTime = new DateTime(DateUtils.getNowAsDateTime());
 
-        act = new TimeTracking(startTime, startTime.plusMinutes(45), null);
+        act = new TimeTracking(startTime.toDate(), startTime.plusMinutes(45).toDate(), null);
         Assertions.assertEquals(0.75, act.getDuration(), 0);
 
-        act = new TimeTracking(startTime, startTime.plusMinutes(30), null);
+        act = new TimeTracking(startTime.toDate(), startTime.plusMinutes(30).toDate(), null);
         Assertions.assertEquals(0.5, act.getDuration(), 0);
 
-        act = new TimeTracking(startTime, startTime.plusHours(1).plusMinutes(30), null);
+        act = new TimeTracking(startTime.toDate(), startTime.plusHours(1).plusMinutes(30).toDate(), null);
         Assertions.assertEquals(1.5, act.getDuration(), 0);
 
-        act = new TimeTracking(startTime, startTime.plusMinutes(20), null);
+        act = new TimeTracking(startTime.toDate(), startTime.plusMinutes(20).toDate(), null);
         Assertions.assertEquals(1.0/3, act.getDuration(), 0);
     }
 
@@ -32,30 +32,38 @@ public class TrackingServiceTest {
      */
     @Test
     public void testStartAndEndOnSameDay() {
-        TimeTracking act = new TimeTracking(new DateTime(2009, 1, 1, 0, 0, 0, 0),
-                new DateTime(2009, 1, 1, 23, 0, 0 ,0), null);
+        TimeTracking act = new TimeTracking(new DateTime(2009, 1, 1, 0, 0, 0, 0).toDate(),
+                new DateTime(2009, 1, 1, 23, 0, 0 ,0).toDate(), null);
 
-        Assertions.assertEquals(1, act.getStart().getDayOfMonth());
-        Assertions.assertEquals(1, act.getEnd().getDayOfMonth());
+        DateTime start = new DateTime(act.getStart());
+        DateTime end = new DateTime(act.getEnd());
+
+        Assertions.assertEquals(1, start.getDayOfMonth());
+        Assertions.assertEquals(1, end.getDayOfMonth());
 
         // when end is at 0:00h it must be on the next day
         act.setEndTime(0, 0);
-        Assertions.assertEquals(2, act.getEnd().getDayOfMonth());
+        end = new DateTime(act.getEnd());
+        Assertions.assertEquals(2, end.getDayOfMonth());
 
         // otherwise it must be on the same day as start
         act.setEndTime(12, 0);
-        Assertions.assertEquals(1, act.getEnd().getDayOfMonth());
+        end = new DateTime(act.getEnd());
+        Assertions.assertEquals(1, end.getDayOfMonth());
 
         // test again: when end is at 0:00h it must be on the next day
         act.setEndTime(0, 0);
-        Assertions.assertEquals(2, act.getEnd().getDayOfMonth());
+        end = new DateTime(act.getEnd());
+        Assertions.assertEquals(2, end.getDayOfMonth());
 
         // start day must not change:
         act.setEndTime(11, 55);
-        Assertions.assertEquals(1, act.getStart().getDayOfMonth());
+        start = new DateTime(act.getStart());
+        Assertions.assertEquals(1, start.getDayOfMonth());
 
         act.setEndTime(0, 0);
-        Assertions.assertEquals(1, act.getStart().getDayOfMonth());
+        start = new DateTime(act.getStart());
+        Assertions.assertEquals(1, start.getDayOfMonth());
     }
 
     /**
@@ -65,16 +73,16 @@ public class TrackingServiceTest {
     @Test
     public void testStartNotAfterEnd() {
         try {
-            new TimeTracking(new DateTime(2009, 1, 1, 13, 0, 0 ,0),
-                    new DateTime(2009, 1, 1, 12, 0, 0, 0), null);
+            new TimeTracking(new DateTime(2009, 1, 1, 13, 0, 0 ,0).toDate(),
+                    new DateTime(2009, 1, 1, 12, 0, 0, 0).toDate(), null);
             Assertions.fail("Expected IllegalArgumentException");
         } catch (IllegalArgumentException e) {
             // ok, expected
         }
 
         try {
-            TimeTracking act = new TimeTracking(new DateTime(2009, 1, 1, 11, 0, 0 ,0),
-                    new DateTime(2009, 1, 1, 12, 0, 0, 0), null);
+            TimeTracking act = new TimeTracking(new DateTime(2009, 1, 1, 11, 0, 0 ,0).toDate(),
+                    new DateTime(2009, 1, 1, 12, 0, 0, 0).toDate(), null);
             act.setEndTime(10, 0);
             Assertions.fail("Expected IllegalArgumentException");
         } catch (IllegalArgumentException e) {
@@ -82,8 +90,8 @@ public class TrackingServiceTest {
         }
 
         try {
-            TimeTracking act = new TimeTracking(new DateTime(2009, 1, 1, 11, 0, 0 ,0),
-                    new DateTime(2009, 1, 1, 12, 0, 0, 0), null);
+            TimeTracking act = new TimeTracking(new DateTime(2009, 1, 1, 11, 0, 0 ,0).toDate(),
+                    new DateTime(2009, 1, 1, 12, 0, 0, 0).toDate(), null);
             act.setEndTime(13, 0);
         } catch (IllegalArgumentException e) {
             Assertions.fail("Unexpected IllegalArgumentException");
@@ -97,8 +105,8 @@ public class TrackingServiceTest {
     public void testSetDay() {
         {
             TimeTracking act = new TimeTracking(
-                    new DateTime(2009, 1, 1, 11, 0, 0 ,0),
-                    new DateTime(2009, 1, 1, 12, 47, 0, 0),
+                    new DateTime(2009, 1, 1, 11, 0, 0 ,0).toDate(),
+                    new DateTime(2009, 1, 1, 12, 47, 0, 0).toDate(),
                     null
             );
             DateTime day = act.getDay();
@@ -112,7 +120,7 @@ public class TrackingServiceTest {
             Assertions.assertEquals(7, day.getMonthOfYear());
             Assertions.assertEquals(2020, day.getYear());
 
-            DateTime end = act.getEnd();
+            DateTime end = new DateTime(act.getEnd());
             Assertions.assertEquals(13, end.getDayOfMonth());
             Assertions.assertEquals(7, end.getMonthOfYear());
             Assertions.assertEquals(2020, end.getYear());
@@ -123,8 +131,8 @@ public class TrackingServiceTest {
         // these time with an activity ending at 0:00h
         {
             TimeTracking act = new TimeTracking(
-                    new DateTime(2009, 1, 1, 11, 0, 0 ,0),
-                    new DateTime(2009, 1, 2, 0, 0, 0, 0),
+                    new DateTime(2009, 1, 1, 11, 0, 0 ,0).toDate(),
+                    new DateTime(2009, 1, 2, 0, 0, 0, 0).toDate(),
                     null
             );
             DateTime day = act.getDay();
@@ -138,7 +146,7 @@ public class TrackingServiceTest {
             Assertions.assertEquals(7, day.getMonthOfYear());
             Assertions.assertEquals(2020, day.getYear());
 
-            DateTime end = act.getEnd();
+            DateTime end = new DateTime(act.getEnd());
             Assertions.assertEquals(14, end.getDayOfMonth());
             Assertions.assertEquals(7, end.getMonthOfYear());
             Assertions.assertEquals(2020, end.getYear());

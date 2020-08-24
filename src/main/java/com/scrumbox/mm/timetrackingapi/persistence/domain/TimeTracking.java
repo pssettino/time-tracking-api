@@ -8,24 +8,28 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
 
-@Entity(name = "time_tracking")
+@Entity
+@Table(name = "time_tracking")
 public class TimeTracking implements Serializable, Comparable<TimeTracking> {
 
     @Id
     @GeneratedValue
     private Integer id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tracking_id", referencedColumnName = "id")
     private Tracking tracking;
 
-    private DateTime start;
-    private DateTime end;
+    private Date start;
+    private Date end;
 
     public TimeTracking() {
     }
 
-    public TimeTracking(final DateTime start, final DateTime end, final Tracking tracking) {
-        if (start.isAfter(end)) {
+    public TimeTracking(final Date start, final Date end, final Tracking tracking) {
+        DateTime startDate = new DateTime(start);
+        DateTime endDate = new DateTime(end);
+        if (startDate.isAfter(endDate)) {
             throw new TimeTrackingException("End time may not be before start time!");
         }
         this.start = start;
@@ -39,18 +43,20 @@ public class TimeTracking implements Serializable, Comparable<TimeTracking> {
      *   Hours, minutes, seconds and so on in the passed value are ignored.
      */
     public void setDay(final DateTime day) {
-        DateTime newStartDay = getStart();
-        this.start = newStartDay.withYear(day.getYear()).withMonthOfYear(day.getMonthOfYear())
+        DateTime newStartDay = new DateTime(getStart());
+        DateTime startDay = newStartDay.withYear(day.getYear()).withMonthOfYear(day.getMonthOfYear())
                 .withDayOfMonth(day.getDayOfMonth());
 
-        DateTime newEndDay = getEnd();
+        this.start = startDay.toDate();
+
+        DateTime newEndDay = new DateTime(getEnd());
         newEndDay = newEndDay.withYear(day.getYear()).withMonthOfYear(day.getMonthOfYear())
                 .withDayOfMonth(day.getDayOfMonth());
         if (newEndDay.getHourOfDay() == 0 && newEndDay.getMinuteOfHour() == 0) {
             newEndDay = newEndDay.plusDays(1);
         }
 
-        this.end = newEndDay;
+        this.end = newEndDay.toDate();
     }
 
     /**
@@ -58,14 +64,14 @@ public class TimeTracking implements Serializable, Comparable<TimeTracking> {
      * Hours, minutes, seconds of the returned value are to be ignored.
      */
     public DateTime getDay() {
-        return getStart().withMillisOfDay(0);
+        return new DateTime(getStart()).withMillisOfDay(0);
     }
 
-    public DateTime getEnd() {
+    public Date getEnd() {
         return end;
     }
 
-    public DateTime getStart() {
+    public Date getStart() {
         return start;
     }
 
@@ -77,7 +83,8 @@ public class TimeTracking implements Serializable, Comparable<TimeTracking> {
      * @throws IllegalArgumentException if end time is before start time
      */
     public void setEndTime(final int hours, final int minutes) {
-        DateTime endDate = getEnd();
+        DateTime endDate = new DateTime(getEnd());
+        DateTime starDate = new DateTime(getStart());
         if (hours == endDate.getHourOfDay() && minutes == endDate.getMinuteOfHour()) {
             return;
         }
@@ -91,11 +98,11 @@ public class TimeTracking implements Serializable, Comparable<TimeTracking> {
 
         endDate = endDate.withHourOfDay(hours).withMinuteOfHour(minutes);
 
-        if (endDate.isBefore(getStart())) {
+        if (endDate.isBefore(starDate)) {
             throw new TimeTrackingException("End time may not be before start time!");
         }
 
-        this.end = endDate;
+        this.end = endDate.toDate();
     }
 
 
@@ -107,8 +114,10 @@ public class TimeTracking implements Serializable, Comparable<TimeTracking> {
 
         // Sort by start date but the other way round. That way the latest
         // activity is always on top.
-        final DateTime startDateTime =  this.getDay().withHourOfDay(getStart().getHourOfDay()).withMinuteOfHour(getStart().getMinuteOfHour());
-        final DateTime startDateTimeOther =  activity.getDay().withHourOfDay(activity.getStart().getHourOfDay()).withMinuteOfHour(activity.getStart().getMinuteOfHour());
+        DateTime starDate = new DateTime(getStart());
+        DateTime activityStart = new DateTime(activity.getStart());
+        final DateTime startDateTime =  this.getDay().withHourOfDay(starDate.getHourOfDay()).withMinuteOfHour(starDate.getMinuteOfHour());
+        final DateTime startDateTimeOther =  activity.getDay().withHourOfDay(activityStart.getHourOfDay()).withMinuteOfHour(activityStart.getMinuteOfHour());
 
         return startDateTime.compareTo(startDateTimeOther) * -1;
     }
@@ -118,8 +127,15 @@ public class TimeTracking implements Serializable, Comparable<TimeTracking> {
      * @return decimal value of the duration (e.g. for 30 minutes, 0.5 and so on)
      */
     public final double getDuration() {
-        final long timeMilliSec = end.getMillis() - start.getMillis();
+        DateTime startDate = new DateTime(start);
+        DateTime endDate = new DateTime(end);
+        final long timeMilliSec = endDate.getMillis() - startDate.getMillis();
         final double timeMin = timeMilliSec / 1000.0 / 60.0;
         return timeMin / 60.0;
+    }
+
+    public void setTracking(Tracking tracking) {
+        this.tracking = tracking;
+        tracking.getTimeTracking().add(this);
     }
 }

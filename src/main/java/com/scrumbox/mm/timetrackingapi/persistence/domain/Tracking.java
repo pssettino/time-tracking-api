@@ -1,14 +1,10 @@
 package com.scrumbox.mm.timetrackingapi.persistence.domain;
 
-import lombok.*;
-
 import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Size;
-import java.util.Date;
 import java.util.List;
 
-@Entity(name = "tracking")
+@Entity
+@Table(name="tracking")
 public class Tracking {
 
     @Id
@@ -19,7 +15,11 @@ public class Tracking {
     private Integer absences;
     private Boolean status;
 
-    @OneToMany(mappedBy = "tracking")
+    @OneToMany(
+            mappedBy = "tracking",
+            cascade = CascadeType.ALL,
+            fetch = FetchType.LAZY
+    )
     private List<TimeTracking> timeTracking;
 
     public Integer getId() {
