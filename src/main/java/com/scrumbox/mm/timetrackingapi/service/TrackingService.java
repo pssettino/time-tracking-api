@@ -49,21 +49,31 @@ public class TrackingService {
             tracking.setStatus(true);
             tracking.setTimeTracking( new ArrayList<TimeTracking>());
         }
-
-        DateTime startTime = DateUtils.getNowAsDateTime();
-        System.out.println("StartTime -------------> "+ startTime);
-        System.out.println("StartTime -------------> "+ startTime.plusHours(9));
-
         List<TimeTracking> lastTimeTracking = tracking.getTimeTracking();
-        TimeTracking timeTracking = new TimeTracking(startTime.toDate(), startTime.plusHours(9).toDate(), tracking);
-        //TimeTracking act = lastTimeTracking.stream().reduce((first, second) -> second)
-         //       .orElse(new TimeTracking(startTime.toDate(), startTime.plusHours(9).toDate() , tracking));
+        DateTime startTime = DateUtils.getNowAsDateTime();
 
-        //if(act.getDuration() > 9) {
-        //    tracking.setAbsences(tracking.getAbsences() + 1);
-        // }
+        TimeTracking act = lastTimeTracking.stream().reduce((first, second) -> second)
+                .orElse(new TimeTracking(startTime.toDate(), startTime.toDate(), tracking));
 
-        lastTimeTracking.add(timeTracking);
+        if(act.getDay().isAfterNow() && act.getDuration() > 9) {
+            System.out.println("ES UN NUEVO DIA CON DURACION:  "+ act.getDuration());
+            tracking.setAbsences(tracking.getAbsences() + 1);
+        }
+
+        if(act.getDay().getDayOfYear() == startTime.getDayOfYear()) {
+            System.out.println("NUEVO HORARIO DE FIN CON DURACION:  "+ act.getDuration());
+            act.setEndTime(startTime.getHourOfDay(), startTime.getMinuteOfHour());
+        }
+
+        if(act.getDuration() == 9) {
+            System.out.println("TRABAJO LAS 9 HORAS");
+        } else if(act.getDuration() < 9) {
+            System.out.println("TRABAJO MENOS HORAS:  "+ act.getDuration());
+        } else {
+            System.out.println("TRABAJO MAS HORAS:  "+ act.getDuration());
+        }
+
+        lastTimeTracking.add(act);
 
         timeTrackingRepository.saveAll(lastTimeTracking);
 
