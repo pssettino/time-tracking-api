@@ -85,6 +85,7 @@ public class TrackingService {
 
         if(!hasValidShift(dni, act)) {
             // TODO: HACE FALTA QUE SE PERIMTA FICHAR IGUAL?
+            // TODO: VERIFICAR TURNOS DENTRO DEL MISMO DIA
             // DISPARAR NOTIFICATION
             throw new TimeTrackingException("Turno incorrecto!");
         }
@@ -96,12 +97,8 @@ public class TrackingService {
             throw new TimeTrackingException("No puede fichar si tiene justificado el día por ausencia!");
         }
 
-        // Si la ultima fecha cargada es anterior al día de hoy y la fecha de duracion es mayor a 9hs laborales cargo el ausente
-        // QUE PASA CON LOS DIAS NO LABORABLES ?
-        if(act.getDay().isBeforeNow() && act.getDuration() > 9) {
-            log.info("ES UN NUEVO DIA CON DURACION:  "+ act.getDuration());
-            tracking.setAbsences(tracking.getAbsences() + 1);
-        }
+        // NO HACE FALTA SETEAR LOS AUSENTES YA QUE SON CALCULABLES.
+        // LOS AUSENTES SE CALCULAN COMPARANDO LAS SUM(DURACION DE HORAS TRABAJAS DEL EMPLEADO DEL MES) CONTRA  TOTALES * DIAS HABILES DEL MES
 
         if(act.getDay().getDayOfYear() == startTime.getDayOfYear()) {
             log.info("NUEVO HORARIO DE FIN CON DURACION:  "+ act.getDuration());
