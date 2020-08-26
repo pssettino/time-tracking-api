@@ -2,8 +2,11 @@ package com.scrumbox.mm.timetrackingapi.controller;
 
 
 import com.scrumbox.mm.timetrackingapi.persistence.domain.Tracking;
+import com.scrumbox.mm.timetrackingapi.service.QrService;
 import javassist.bytecode.ByteArray;
 import net.glxn.qrgen.javase.QRCode;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
@@ -12,11 +15,10 @@ import java.io.File;
 @RequestMapping("/api/tracking/qr")
 public class QrController {
 
-    //TODO
-    private final String URL_TRACKING = "localhost:8080/time-tracking-api/api/tracking/";
+    @Autowired
+    private QrService qrService;
 
-    @GetMapping("/{dni}")
-    public File trackingQr(@PathVariable Integer dni) {return QRCode.from(URL_TRACKING + dni).file(dni.toString());
-    }
+    @GetMapping(value = "/{dni}", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public @ResponseBody byte[] trackingQr(@PathVariable String dni) {return qrService.trackingQr(dni); }
 
 }
