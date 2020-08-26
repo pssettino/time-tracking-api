@@ -29,7 +29,7 @@ public class TrackingController {
         return trackingService.save(tracking);
     }
 
-    @PutMapping("/{dni}")
+    @GetMapping("/{dni}")
     public Tracking trackTime(@PathVariable Integer dni) {
         return trackingService.trackTime(dni);
     }

@@ -1,14 +1,22 @@
 package com.scrumbox.mm.timetrackingapi.controller;
 
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import com.scrumbox.mm.timetrackingapi.persistence.domain.Tracking;
+import javassist.bytecode.ByteArray;
+import net.glxn.qrgen.javase.QRCode;
+import org.springframework.web.bind.annotation.*;
+
+import java.io.File;
 
 @RestController
-@RequestMapping("/api/qr")
+@RequestMapping("/api/tracking/qr")
 public class QrController {
 
+    //TODO
+    private final String URL_TRACKING = "localhost:8080/time-tracking-api/api/tracking/";
+
+    @GetMapping("/{dni}")
+    public File trackingQr(@PathVariable Integer dni) {return QRCode.from(URL_TRACKING + dni).file(dni.toString());
+    }
 
 }
