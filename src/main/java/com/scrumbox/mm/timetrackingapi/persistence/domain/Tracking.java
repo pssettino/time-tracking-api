@@ -13,7 +13,7 @@ public class Tracking {
 
     private Integer dni;
     private Integer absences;
-    private Boolean status;
+    private Boolean active;
 
     @OneToMany(
             mappedBy = "tracking",
@@ -21,6 +21,23 @@ public class Tracking {
             fetch = FetchType.LAZY
     )
     private List<TimeTracking> timeTracking;
+
+
+    public Tracking() {
+    }
+
+    public Tracking(Integer dni, Integer absences, Boolean active) {
+        this.dni = dni;
+        this.absences = absences;
+        this.active = active;
+    }
+
+    public Tracking(Integer dni, Integer absences, Boolean active, List<TimeTracking> timeTracking) {
+        this.dni = dni;
+        this.absences = absences;
+        this.active = active;
+        this.timeTracking = timeTracking;
+    }
 
     public Integer getId() {
         return id;
@@ -46,12 +63,12 @@ public class Tracking {
         this.absences = absences;
     }
 
-    public Boolean getStatus() {
-        return status;
+    public Boolean getActive() {
+        return active;
     }
 
-    public void setStatus(Boolean status) {
-        this.status = status;
+    public void setActive(Boolean active) {
+        this.active = active;
     }
 
     public List<TimeTracking> getTimeTracking() {

@@ -11,8 +11,6 @@ import com.scrumbox.mm.timetrackingapi.persistence.domain.TimeTracking;
 import com.scrumbox.mm.timetrackingapi.persistence.repository.TimeTrackingRepository;
 import com.scrumbox.mm.timetrackingapi.persistence.repository.TrackingRepository;
 import com.scrumbox.mm.timetrackingapi.utils.DateUtils;
-import lombok.RequiredArgsConstructor;
-import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.joda.time.DateTime;
@@ -117,7 +115,7 @@ public class TrackingService {
             tracking = new Tracking();
             tracking.setDni(dni);
             tracking.setAbsences(0);
-            tracking.setStatus(true);
+            tracking.setActive(true);
             tracking.setTimeTracking( new ArrayList<TimeTracking>());
         }
         return tracking;
@@ -125,8 +123,8 @@ public class TrackingService {
 
     // @Cacheable
     public Tracking findByDni(Integer dni) {
-        Optional<Tracking> fichaje = trackingRepository.findByDni(dni);
-        return fichaje.orElse(null);
+        Optional<Tracking> tracking = trackingRepository.findByDni(dni);
+        return tracking != null ? tracking.get() : null;
     }
 
     private Boolean hasJustification(Integer dni) {
