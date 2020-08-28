@@ -4,7 +4,6 @@ import com.netflix.appinfo.InstanceInfo;
 import com.netflix.discovery.EurekaClient;
 import com.scrumbox.mm.timetrackingapi.exception.TimeTrackingException;
 import com.scrumbox.mm.timetrackingapi.model.Holiday;
-import com.scrumbox.mm.timetrackingapi.model.HolidayList;
 import com.scrumbox.mm.timetrackingapi.model.Shift;
 import com.scrumbox.mm.timetrackingapi.persistence.domain.Tracking;
 import com.scrumbox.mm.timetrackingapi.persistence.domain.TimeTracking;
@@ -181,12 +180,10 @@ public class TrackingService {
 
     private Boolean isHoliday(DateTime today){
         String serviceUrl = String.format("https://nolaborables.com.ar/api/v2/feriados/%s", today.getYear());
-        ResponseEntity<HolidayList> response = restTemplate.getForEntity(serviceUrl, HolidayList.class);
+        ResponseEntity<Holiday[]> response = restTemplate.getForEntity(serviceUrl, Holiday[].class);
 
-
-        List<Holiday> holidays = response.getBody().getHolidays();
+        List<Holiday> holidays = Arrays.asList(response.getBody());
 
         return holidays.stream().filter(it -> it.getDia() == today.getDayOfMonth() && it.getMes() == today.getMonthOfYear()).count() > 0;
-
     }
 }
