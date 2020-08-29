@@ -29,9 +29,6 @@ public class TrackingService {
 
     private static final Logger log = LoggerFactory.getLogger(TrackingService.class);
 
-    private final String USER_SERVICE = "users-api";
-    private final String USER_API = "http://%s:%s/" + USER_SERVICE + "/api/";
-
     private TimeTrackingRepository timeTrackingRepository;
     private TrackingRepository trackingRepository;
     private RestTemplate restTemplate;
@@ -74,7 +71,7 @@ public class TrackingService {
             throw new TimeTrackingException("Es Feriado!");
         }
 
-        if(startTime.getDayOfWeek() == 6) {
+        if(startTime.getDayOfWeek() == 7) {
             // TODO: HACE FALTA QUE SE PERIMTA FICHAR IGUAL?
             // DISPARAR NOTIFICATION
             throw new TimeTrackingException("Es domingo!");
@@ -150,7 +147,7 @@ public class TrackingService {
         InstanceInfo userInstance = eurekaClient.getApplication(USER_SERVICE).getInstances().get(0);
 
         //Get the service URL
-        String serviceUrl = String.format(USER_API + "users?dni=%s",userInstance.getIPAddr(), userInstance.getPort(),dni.toString());
+        String serviceUrl = String.format("http://%s:%s/users-api/api/employees/dni?dni=%s",userInstance.getIPAddr(), userInstance.getPort(),dni.toString());
 
         log.info("User service url: {}", serviceUrl);
 
@@ -166,7 +163,7 @@ public class TrackingService {
 
         InstanceInfo userInstance = eurekaClient.getApplication(USER_SERVICE).getInstances().get(0);
 
-        String serviceUrl = String.format(USER_API + "api/shift?shitId=%s",userInstance.getIPAddr(), userInstance.getPort(),shiftId.toString());
+        String serviceUrl = String.format("http://%s:%s/users-api/api/shift?shitId=%s",userInstance.getIPAddr(), userInstance.getPort(),shiftId.toString());
 
         log.info("User service url: {}", serviceUrl);
 
