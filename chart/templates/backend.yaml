@@ -1,0 +1,122 @@
+{{ if .Values.asofarecetaDigitalBackend.deploy }}
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: uploads
+  namespace: receta-digital
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: csi-s3
+
+---
+
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: asofar-receta-digital-backend
+  namespace: receta-digital
+  labels:
+    app: asofar-receta-digital-backend
+spec:
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: asofar-receta-digital-backend
+  template:
+    metadata:
+      labels:
+        app: asofar-receta-digital-backend
+        logformat: plain
+      annotations:
+        release: {{ .Values.release }}
+    spec:
+      imagePullSecrets:
+        - name: hub-secret
+      containers:
+        - name: asofar-receta-digital-backend
+          image: {{ .Values.asofarecetaDigitalBackend.image }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8710
+            - name: https
+              containerPort: 8711
+          env:
+            {{- range $key, $value := .Values.asofarecetaDigitalBackend.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+          volumeMounts:
+          - name: uploads
+            mountPath: {{ .Values.asofarecetaDigitalBackend.volumePath }}
+      volumes:
+      - name: uploads
+        persistentVolumeClaim:
+          claimName: uploads
+---
+
+kind: Service
+apiVersion: v1
+metadata:
+  labels:
+    app: asofar-receta-digital-backend
+  name: asofar-receta-digital-backend
+  namespace: receta-digital
+spec:
+  ports:
+    - name: http
+      port: 8710
+      targetPort: 8710
+    - name: https
+      port: 8711
+      targetPort: 8711
+  selector:
+    app: asofar-receta-digital-backend
+
+---
+
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: asofar-receta-digital-backend
+  namespace: receta-digital
+spec:
+  entryPoints:
+    - http
+  routes:
+  - match: Host(`{{ .Values.asofarecetaDigitalBackend.host }}`)
+    kind: Rule
+    services:
+    - name: asofar-receta-digital-backend
+      port: 8710
+
+---
+
+{{ if .Values.asofarecetaDigitalBackend.tls.enable }}
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: asofar-receta-digital-backend-tls
+  namespace: receta-digital
+spec:
+  entryPoints:
+    - https
+  routes:
+  - match: Host(`{{ .Values.asofarecetaDigitalBackend.host }}`)
+    kind: Rule
+    services:
+    - name: asofar-receta-digital-backend
+      port: 8710
+  tls:
+    secretName: {{ .Values.asofarecetaDigitalBackend.tls.secretName }}
+{{ end }}
+
+{{ end }}

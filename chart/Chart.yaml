@@ -1,0 +1,6 @@
+name: asofar-receta-digital-backend
+version: 0.0.1
+description: asofar-receta-digital-backend
+keywords:
+- asofar-receta-digital-backend
+engine: gotpl

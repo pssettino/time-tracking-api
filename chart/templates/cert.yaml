@@ -1,0 +1,16 @@
+
+{{ if .Values.asofarecetaDigitalBackend.tls.enable }}
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: asofar-receta-digital-backend-tls
+  namespace: receta-digital
+spec:
+  secretName: {{ .Values.asofarecetaDigitalBackend.tls.secretName }}
+  issuerRef:
+    name: {{ .Values.asofarecetaDigitalBackend.tls.issuer }}
+    kind: ClusterIssuer
+  dnsNames:
+  - {{ .Values.asofarecetaDigitalBackend.host }}
+
+{{ end }}

@@ -1,0 +1,19 @@
+release: "1.0.0"
+debug: true
+appLogLevel: DEBUG
+imagePullPolicy: Always
+termination: 30
+environment: integration
+
+asofarecetaDigitalBackend:
+  deploy: true
+  image: cloud.canister.io:5000/asofar/backend
+  env:
+    Db_AsofarBackend__ConnectionString: "server=asofar-db-mysql.db;database=asofar_backend_receta_digital;Port=3306;user=ar.asofar;password=4s0f4r"
+    PhysicalStorage__DefaultFileDirectory: "/uploaded"
+  volumePath: "/uploaded"
+  host: api-asofar.valtech.com.ar
+  tls: 
+    enable: false
+    secretName: asofar-receta-digital-backend-tls
+    issuer: letsencrypt-staging
