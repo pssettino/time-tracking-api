@@ -2,8 +2,11 @@ package com.scrumbox.mm.timetrackingapi.service;
 
 import com.netflix.appinfo.InstanceInfo;
 import com.netflix.discovery.EurekaClient;
+import com.scrumbox.mm.timetrackingapi.client.UsersApiClient;
 import com.scrumbox.mm.timetrackingapi.exception.TimeTrackingException;
 import com.scrumbox.mm.timetrackingapi.model.Holiday;
+import com.scrumbox.mm.timetrackingapi.model.Justification;
+import com.scrumbox.mm.timetrackingapi.model.JustificationDetail;
 import com.scrumbox.mm.timetrackingapi.model.Shift;
 import com.scrumbox.mm.timetrackingapi.persistence.domain.Tracking;
 import com.scrumbox.mm.timetrackingapi.persistence.domain.TimeTracking;
@@ -17,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -31,18 +35,17 @@ public class TrackingService {
 
     private TimeTrackingRepository timeTrackingRepository;
     private TrackingRepository trackingRepository;
-    private RestTemplate restTemplate;
-    private EurekaClient eurekaClient;
+
+    private UsersApiClient usersApiClient;
 
     @Autowired
     public TrackingService(TrackingRepository trackingRepository,
                            TimeTrackingRepository timeTrackingRepository,
-                           @Qualifier("eurekaClient") final EurekaClient discoveryClient) {
+                           UsersApiClient usersApiClient) {
 
         this.trackingRepository = trackingRepository;
         this.timeTrackingRepository = timeTrackingRepository;
-        this.eurekaClient = discoveryClient;
-        restTemplate = new RestTemplate();
+        this.usersApiClient = usersApiClient;
     }
 
     // @Cacheable
@@ -65,37 +68,30 @@ public class TrackingService {
         TimeTracking act = lastTimeTracking.stream().reduce((first, second) -> second)
                 .orElse(new TimeTracking(startTime.toDate(), startTime.toDate(), tracking));
 
-        if(isHoliday(startTime)) {
-            // TODO: HACE FALTA QUE SE PERIMTA FICHAR IGUAL?
-            // DISPARAR NOTIFICATION
+        if (usersApiClient.isHoliday(startTime)) {
+            // TODO: DISPARAR NOTIFICATION
             throw new TimeTrackingException("Es Feriado!");
         }
 
-        if(startTime.getDayOfWeek() == 7) {
-            // TODO: HACE FALTA QUE SE PERIMTA FICHAR IGUAL?
-            // DISPARAR NOTIFICATION
+        if (startTime.getDayOfWeek() == 7) {
+            // TODO: DISPARAR NOTIFICATION
             throw new TimeTrackingException("Es domingo!");
         }
 
-        if(!hasValidShift(dni, act)) {
-            // TODO: HACE FALTA QUE SE PERIMTA FICHAR IGUAL?
-            // TODO: VERIFICAR TURNOS DENTRO DEL MISMO DIA
-            // DISPARAR NOTIFICATION
+        if (!hasValidShift(dni, act)) {
+            // TODO: DISPARAR NOTIFICATION
             throw new TimeTrackingException("Turno incorrecto!");
         }
 
-        if(hasJustification(dni)) {
-            // TODO: HACE FALTA QUE SE PERIMTA FICHAR IGUAL?
-            // DISPARAR NOTIFICATION
-            // TENER EN CUENTA LOS EN USER-API LOS PERIODOS DE VACACIONES, LAS JUSTICACIONES POR ENFERMEDAD, ECT
+        if (hasJustification(dni, act)) {
+            // TODO: DISPARAR NOTIFICATION
             throw new TimeTrackingException("No puede fichar si tiene justificado el día por ausencia!");
         }
 
-        // NO HACE FALTA SETEAR LOS AUSENTES YA QUE SON CALCULABLES.
         // LOS AUSENTES SE CALCULAN COMPARANDO LAS SUM(DURACION DE HORAS TRABAJAS DEL EMPLEADO DEL MES) CONTRA  TOTALES * DIAS HABILES DEL MES
 
-        if(act.getDay().getDayOfYear() == startTime.getDayOfYear()) {
-            log.info("NUEVO HORARIO DE FIN CON DURACION:  "+ act.getDuration());
+        if (act.getDay().getDayOfYear() == startTime.getDayOfYear()) {
+            log.info("NUEVO HORARIO DE FIN CON DURACION:  " + act.getDuration());
             act.setEndTime(startTime.getHourOfDay(), startTime.getMinuteOfHour());
         }
 
@@ -107,12 +103,12 @@ public class TrackingService {
     }
 
     private Tracking initializeTracking(Integer dni, Tracking tracking) {
-        if(tracking == null) {
+        if (tracking == null) {
             tracking = new Tracking();
             tracking.setDni(dni);
             tracking.setAbsences(0);
             tracking.setActive(true);
-            tracking.setTimeTracking( new ArrayList<TimeTracking>());
+            tracking.setTimeTracking(new ArrayList<TimeTracking>());
         }
         return tracking;
     }
@@ -123,64 +119,40 @@ public class TrackingService {
         return tracking != null ? tracking.get() : null;
     }
 
-    private Boolean hasJustification(Integer dni) {
-        // TODO: Call to JustificationService
-        return true; // No tiene justificativo de ausencia.
+
+    private Boolean hasJustification(Integer dni, TimeTracking today) {
+        Justification justification = usersApiClient.findJustificationByDni(dni);
+
+        if(justification == null) {
+            return false;
+        }
+
+        List<JustificationDetail> justificationDetail = justification.getJustificationDetail();
+
+
+        return justificationDetail.stream().filter(it ->
+                it.getStart().compareTo(today.getStart()) * today.getStart().compareTo(it.getEnd()) >= 0
+        ).count() > 0;
     }
 
     private Boolean hasValidShift(Integer dni, TimeTracking timeTracking) {
-        try{
-            Integer shitId = findEmployeeByDni(dni);
-            Shift shift = findShiftByShiftId(shitId);
+        try {
+            Integer shitId = usersApiClient.findEmployeeByDni(dni);
+            Shift shift = usersApiClient.findShiftByShiftId(shitId);
 
-            Date start = shift.getStart();
-            Date end = shift.getEnd();
+            List<Integer> daysOfWeek = shift.getDaysOfWeek();
+            DateTime day = timeTracking.getDay();
+            if (!daysOfWeek.contains(day.getDayOfWeek())) {
+                return false;
+            }
 
-            return timeTracking.getStart().after(start) && timeTracking.getStart().before(end);
-        } catch (JSONException jse){
+            Integer hour = shift.getHour();
+            // TODO: que onda los minutos?? Integer minutes = shift.getMinutes();
+
+            return day.getHourOfDay() < hour;
+
+        } catch (JSONException jse) {
             throw new TimeTrackingException(jse.getMessage());
         }
-    }
-    private Integer findEmployeeByDni(Integer dni) throws JSONException {
-
-        //Find the User Microservice
-        InstanceInfo userInstance = eurekaClient.getApplication(USER_SERVICE).getInstances().get(0);
-
-        //Get the service URL
-        String serviceUrl = String.format("http://%s:%s/users-api/api/employees/dni?dni=%s",userInstance.getIPAddr(), userInstance.getPort(),dni.toString());
-
-        log.info("User service url: {}", serviceUrl);
-
-        //Get the user
-        ResponseEntity<JSONObject> response = restTemplate.getForEntity(serviceUrl, JSONObject.class);
-
-        log.info("Response: {}", response.getBody());
-
-        return (Integer) Objects.requireNonNull(response.getBody()).get("shift_id");
-    }
-
-    private Shift findShiftByShiftId(Integer shiftId) {
-
-        InstanceInfo userInstance = eurekaClient.getApplication(USER_SERVICE).getInstances().get(0);
-
-        String serviceUrl = String.format("http://%s:%s/users-api/api/shift?shitId=%s",userInstance.getIPAddr(), userInstance.getPort(),shiftId.toString());
-
-        log.info("User service url: {}", serviceUrl);
-
-        //Get the user
-        ResponseEntity<Shift> response = restTemplate.getForEntity(serviceUrl, Shift.class);
-
-        log.info("Response: {}", response.getBody());
-
-        return response.getBody();
-    }
-
-    private Boolean isHoliday(DateTime today){
-        String serviceUrl = String.format("https://nolaborables.com.ar/api/v2/feriados/%s", today.getYear());
-        ResponseEntity<Holiday[]> response = restTemplate.getForEntity(serviceUrl, Holiday[].class);
-
-        List<Holiday> holidays = Arrays.asList(response.getBody());
-
-        return holidays.stream().filter(it -> it.getDia() == today.getDayOfMonth() && it.getMes() == today.getMonthOfYear()).count() > 0;
     }
 }

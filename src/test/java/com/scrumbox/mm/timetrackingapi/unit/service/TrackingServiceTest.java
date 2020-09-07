@@ -1,6 +1,6 @@
 package com.scrumbox.mm.timetrackingapi.unit.service;
 
-import com.netflix.discovery.EurekaClient;
+import com.scrumbox.mm.timetrackingapi.client.UsersApiClient;
 import com.scrumbox.mm.timetrackingapi.persistence.domain.Tracking;
 import com.scrumbox.mm.timetrackingapi.persistence.repository.TimeTrackingRepository;
 import com.scrumbox.mm.timetrackingapi.persistence.repository.TrackingRepository;
@@ -17,8 +17,8 @@ public class TrackingServiceTest {
 
     TimeTrackingRepository timeTrackingRepository= Mockito.mock(TimeTrackingRepository.class);
     TrackingRepository trackingRepository= Mockito.mock(TrackingRepository.class);
-    EurekaClient eurekaClient= Mockito.mock(EurekaClient.class);
-    TrackingService trackingService = new TrackingService(trackingRepository, timeTrackingRepository, eurekaClient);
+    UsersApiClient usersApiClient = Mockito.mock(UsersApiClient.class);
+    TrackingService trackingService = new TrackingService(trackingRepository, timeTrackingRepository, usersApiClient);
 
     @Test
     public void test_findAll_when_has_value() {

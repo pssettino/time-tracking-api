@@ -1,22 +1,19 @@
 package com.scrumbox.mm.timetrackingapi.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
-@Setter
-@Getter
-@AllArgsConstructor
-@NoArgsConstructor
+@Data
 public class Shift implements Serializable{
     private String id;
     private Integer shiftId;
     private String descripcion;
-    private Date start;
-    private Date end;
+    private List<Integer> daysOfWeek;
+    private Integer hour;
+    private Integer minutes;
+    private Boolean extraHoursAvailable;
 }
 

@@ -1,15 +1,11 @@
 package com.scrumbox.mm.timetrackingapi.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
-@Setter
-@Getter
-@AllArgsConstructor
-@NoArgsConstructor
-public class Holiday {
+import java.io.Serializable;
+
+@Data
+public class Holiday implements Serializable{
     private String motivo;
     private String tipo;
     private String info;
