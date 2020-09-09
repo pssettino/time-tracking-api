@@ -54,10 +54,10 @@ public class TrackingService {
         return trackingRepository.save(tracking);
     }
 
-    public Tracking trackTime(Integer dni) {
-        Tracking tracking = findByDni(dni);
+    public Tracking trackTime(Integer documentNumber) {
+        Tracking tracking = findByDocumentNumber(documentNumber);
 
-        tracking = initializeTracking(dni, tracking);
+        tracking = initializeTracking(documentNumber, tracking);
 
         List<TimeTracking> lastTimeTracking = tracking.getTimeTracking();
         DateTime startTime = DateUtils.getNowAsDateTime();
@@ -75,17 +75,17 @@ public class TrackingService {
             throw new TimeTrackingException("Es domingo!");
         }
 
-        if (!hasValidShift(dni, act)) {
+        if (!hasValidShift(documentNumber, act)) {
             // TODO: DISPARAR NOTIFICATION
             throw new TimeTrackingException("Turno incorrecto!");
         }
 
-        if (hasJustification(dni, act)) {
+        if (hasJustification(documentNumber, act)) {
             // TODO: DISPARAR NOTIFICATION
             throw new TimeTrackingException("No puede fichar si tiene justificado el día por ausencia!");
         }
 
-        if (hasSanction(dni, act)) {
+        if (hasSanction(documentNumber, act)) {
             // TODO: DISPARAR NOTIFICATION
             throw new TimeTrackingException("No puede fichar si tiene está sancionado!");
         }
@@ -104,10 +104,10 @@ public class TrackingService {
         return tracking;
     }
 
-    private Tracking initializeTracking(Integer dni, Tracking tracking) {
+    private Tracking initializeTracking(Integer documentNumber, Tracking tracking) {
         if (tracking == null) {
             tracking = new Tracking();
-            tracking.setDni(dni);
+            tracking.setDocumentNumber(documentNumber);
             tracking.setAbsences(0);
             tracking.setActive(true);
             tracking.setTimeTracking(new ArrayList<TimeTracking>());
@@ -119,14 +119,14 @@ public class TrackingService {
     }
 
     // @Cacheable
-    public Tracking findByDni(Integer dni) {
-        Optional<Tracking> tracking = trackingRepository.findByDni(dni);
+    public Tracking findByDocumentNumber(Integer documentNumber) {
+        Optional<Tracking> tracking = trackingRepository.findByDocumentNumber(documentNumber);
         return tracking != null ? tracking.get() : null;
     }
 
 
-    private Boolean hasJustification(Integer dni, TimeTracking today) {
-        Justification justification = usersApiClient.findJustificationByDni(dni);
+    private Boolean hasJustification(Integer documentNumber, TimeTracking today) {
+        Justification justification = usersApiClient.findJustificationByDocumentNumber(documentNumber);
 
         if(justification == null) {
             return false;
@@ -140,8 +140,8 @@ public class TrackingService {
         ).count() > 0;
     }
 
-    private Boolean hasSanction(Integer dni, TimeTracking today) {
-        Sanction sanction = usersApiClient.findSanctionByDni(dni);
+    private Boolean hasSanction(Integer documentNumber, TimeTracking today) {
+        Sanction sanction = usersApiClient.findSanctionByDocumentNumber(documentNumber);
 
         if(sanction == null) {
             return false;
@@ -155,9 +155,9 @@ public class TrackingService {
         ).count() > 0;
     }
 
-    private Boolean hasValidShift(Integer dni, TimeTracking timeTracking) {
+    private Boolean hasValidShift(Integer documentNumber, TimeTracking timeTracking) {
         try {
-            Integer shitId = usersApiClient.findEmployeeByDni(dni);
+            Integer shitId = usersApiClient.findEmployeeByDocumentNumber(documentNumber);
             Shift shift = usersApiClient.findShiftByShiftId(shitId);
 
             List<Integer> daysOfWeek = shift.getDaysOfWeek();

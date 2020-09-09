@@ -26,8 +26,8 @@ public class PublishService {
     public void notifyFichajeCreated(Tracking tracking) {
         QueueMessage message = new QueueMessage();
         message.setEventName(QueueEvents.FICHAJE_CREATED);
-        message.setData(tracking.getDni());
-        log.info("About to send message: {}" , tracking.getDni());
+        message.setData(tracking.getDocumentNumber());
+        log.info("About to send message: {}" , tracking.getDocumentNumber());
         rabbitTemplate.convertAndSend(QueueConstants.EXCHANGE_NAME, QueueConstants.ROUTING_KEY, message);
         log.info("Sent Message");
 

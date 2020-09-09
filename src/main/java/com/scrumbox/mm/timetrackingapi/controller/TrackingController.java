@@ -29,13 +29,13 @@ public class TrackingController {
         return trackingService.save(tracking);
     }
 
-    @GetMapping("/{dni}")
-    public Tracking trackTime(@PathVariable Integer dni) {
-        return trackingService.trackTime(dni);
+    @GetMapping("/{documentNumber}")
+    public Tracking trackTime(@PathVariable Integer documentNumber) {
+        return trackingService.trackTime(documentNumber);
     }
 
-    @GetMapping("/dni")
-    public Tracking findByDni(@RequestParam Integer dni) {
-        return trackingService.findByDni(dni);
+    @GetMapping("/documentNumber")
+    public Tracking findByDocumentNumber(@RequestParam Integer documentNumber) {
+        return trackingService.findByDocumentNumber(documentNumber);
     }
 }

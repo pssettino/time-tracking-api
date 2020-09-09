@@ -8,7 +8,6 @@ import java.util.List;
 
 @Data
 public class Shift implements Serializable{
-    private String id;
     private Integer shiftId;
     private String descripcion;
     private List<Integer> daysOfWeek;

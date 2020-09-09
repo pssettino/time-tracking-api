@@ -34,10 +34,10 @@ public class UsersApiClient {
     private @Qualifier("eurekaClient")
     EurekaClient eurekaClient;
 
-    public Justification findJustificationByDni(Integer dni) throws UsersApiClientException {
+    public Justification findJustificationByDocumentNumber(Integer documentNumber) throws UsersApiClientException {
         try {
             InstanceInfo userInstance = eurekaClient.getApplication("users-api").getInstances().get(0);
-            String serviceUrl = String.format("http://%s:%s/api/justification/dni?dni=%s", userInstance.getIPAddr(), userInstance.getPort(), dni.toString());
+            String serviceUrl = String.format("http://%s:%s/api/justification/documentNumber?documentNumber=%s", userInstance.getIPAddr(), userInstance.getPort(), documentNumber.toString());
 
             log.info("User service url: {}", serviceUrl);
 
@@ -56,10 +56,10 @@ public class UsersApiClient {
         }
     }
 
-    public Sanction findSanctionByDni(Integer dni) throws UsersApiClientException {
+    public Sanction findSanctionByDocumentNumber(Integer documentNumber) throws UsersApiClientException {
         try {
             InstanceInfo userInstance = eurekaClient.getApplication("users-api").getInstances().get(0);
-            String serviceUrl = String.format("http://%s:%s/api/sanction/dni?dni=%s", userInstance.getIPAddr(), userInstance.getPort(), dni.toString());
+            String serviceUrl = String.format("http://%s:%s/api/sanction/documentNumber?documentNumber=%s", userInstance.getIPAddr(), userInstance.getPort(), documentNumber.toString());
 
             log.info("User service url: {}", serviceUrl);
 
@@ -78,13 +78,13 @@ public class UsersApiClient {
         }
     }
 
-    public Integer findEmployeeByDni(Integer dni) throws UsersApiClientException {
+    public Integer findEmployeeByDocumentNumber(Integer documentNumber) throws UsersApiClientException {
         try {
             //Find the User Microservice
             InstanceInfo userInstance = eurekaClient.getApplication("users-api").getInstances().get(0);
 
             //Get the service URL
-            String serviceUrl = String.format("http://%s:%s/api/employees/dni?dni=%s", userInstance.getIPAddr(), userInstance.getPort(), dni.toString());
+            String serviceUrl = String.format("http://%s:%s/api/employees/documentNumber?documentNumber=%s", userInstance.getIPAddr(), userInstance.getPort(), documentNumber.toString());
 
             log.info("User service url: {}", serviceUrl);
 

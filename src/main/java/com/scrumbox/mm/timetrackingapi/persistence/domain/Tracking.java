@@ -11,7 +11,7 @@ public class Tracking {
     @GeneratedValue
     private Integer id;
 
-    private Integer dni;
+    private Integer documentNumber;
     private Integer absences;
     private Boolean active;
 
@@ -26,14 +26,14 @@ public class Tracking {
     public Tracking() {
     }
 
-    public Tracking(Integer dni, Integer absences, Boolean active) {
-        this.dni = dni;
+    public Tracking(Integer documentNumber, Integer absences, Boolean active) {
+        this.documentNumber = documentNumber;
         this.absences = absences;
         this.active = active;
     }
 
-    public Tracking(Integer dni, Integer absences, Boolean active, List<TimeTracking> timeTracking) {
-        this.dni = dni;
+    public Tracking(Integer documentNumber, Integer absences, Boolean active, List<TimeTracking> timeTracking) {
+        this.documentNumber = documentNumber;
         this.absences = absences;
         this.active = active;
         this.timeTracking = timeTracking;
@@ -47,12 +47,12 @@ public class Tracking {
         this.id = id;
     }
 
-    public Integer getDni() {
-        return dni;
+    public Integer getDocumentNumber() {
+        return documentNumber;
     }
 
-    public void setDni(Integer dni) {
-        this.dni = dni;
+    public void setDocumentNumber(Integer documentNumber) {
+        this.documentNumber = documentNumber;
     }
 
     public Integer getAbsences() {

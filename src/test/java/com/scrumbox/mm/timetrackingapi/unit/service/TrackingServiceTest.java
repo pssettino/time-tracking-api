@@ -39,22 +39,22 @@ public class TrackingServiceTest {
     public void test_findByDni_when_has_value() {
         // GIVEN
         Optional<Tracking> tracking = Optional.of(new Tracking(33633264, 0, true));
-        Mockito.when(trackingRepository.findByDni(Mockito.anyInt())).thenReturn(tracking);
+        Mockito.when(trackingRepository.findByDocumentNumber(Mockito.anyInt())).thenReturn(tracking);
 
         // WHEN
-        Tracking result = trackingService.findByDni(33633264);
+        Tracking result = trackingService.findByDocumentNumber(33633264);
 
         // THEN
-        Assertions.assertTrue(result.getDni() == 33633264);
+        Assertions.assertTrue(result.getDocumentNumber() == 33633264);
     }
 
     @Test
     public void test_findByDni_when_hasNot_value() {
         // GIVEN
-        Mockito.when(trackingRepository.findByDni(Mockito.anyInt())).thenReturn(null);
+        Mockito.when(trackingRepository.findByDocumentNumber(Mockito.anyInt())).thenReturn(null);
 
         // WHEN
-        Tracking result = trackingService.findByDni(33633264);
+        Tracking result = trackingService.findByDocumentNumber(33633264);
 
         // THEN
         Assertions.assertNull(result);
@@ -70,7 +70,7 @@ public class TrackingServiceTest {
         Tracking result = trackingService.save(tracking.get());
 
         // THEN
-        Assertions.assertTrue(result.getDni() == 33633264);
+        Assertions.assertTrue(result.getDocumentNumber() == 33633264);
     }
 
 }

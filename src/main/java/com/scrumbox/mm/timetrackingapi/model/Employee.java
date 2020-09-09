@@ -7,9 +7,8 @@ import java.util.List;
 
 @Data
 public class Employee implements Serializable {
-    private String id;
-    private Integer dni;
-    private String tipoDni;
+    private Integer documentNumber;
+    private String documentType;
     private String fullName;
     private String email;
     private Date startDate;
@@ -17,9 +16,9 @@ public class Employee implements Serializable {
     private Boolean status;
     private ERole role;
     private Address address;
-    private List<String> telefonos;
+    private List<String> telephones;
     private String cuil;
-    private Date fechaNacimiento;
+    private Date birthday;
     private Integer shiftId;
     private String imageProfile;
 }

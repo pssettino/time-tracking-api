@@ -9,7 +9,6 @@ import java.util.List;
 
 @Data
 public class Justification implements Serializable {
-    private String id;
-    private Integer dni;
+    private Integer documentNumber;
     private List<JustificationDetail> justificationDetail;
 }

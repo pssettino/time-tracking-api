@@ -13,7 +13,7 @@ public class QrController {
     @Autowired
     private QrService qrService;
 
-    @GetMapping(value = "/{dni}", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    public @ResponseBody byte[] trackingQr(@PathVariable String dni) {return qrService.getQrEmployee(dni); }
+    @GetMapping(value = "/{documentNumber}", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public @ResponseBody byte[] trackingQr(@PathVariable String documentNumber) {return qrService.getQrEmployee(documentNumber); }
 
 }

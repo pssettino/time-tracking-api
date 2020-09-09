@@ -12,11 +12,11 @@ import java.io.ByteArrayOutputStream;
 @Service
 public class QrService {
 
-    private final String USERS_API = "http://%s:%s/users-api/api/employees/dni?dni=%s";
+    private final String USERS_API = "http://%s:%s/users-api/api/employees/documentNumber?documentNumber=%s";
 
     @Cacheable
-    public byte[] getQrEmployee(String dni) {
-        String serviceUrl = String.format(USERS_API, "localhost", "8080", dni);
+    public byte[] getQrEmployee(String documentNumber) {
+        String serviceUrl = String.format(USERS_API, "localhost", "8080", documentNumber);
 
         ByteArrayOutputStream stream = QRCode
                 .from(serviceUrl)
