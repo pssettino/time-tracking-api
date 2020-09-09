@@ -4,10 +4,7 @@ import com.netflix.appinfo.InstanceInfo;
 import com.netflix.discovery.EurekaClient;
 import com.scrumbox.mm.timetrackingapi.client.UsersApiClient;
 import com.scrumbox.mm.timetrackingapi.exception.TimeTrackingException;
-import com.scrumbox.mm.timetrackingapi.model.Holiday;
-import com.scrumbox.mm.timetrackingapi.model.Justification;
-import com.scrumbox.mm.timetrackingapi.model.JustificationDetail;
-import com.scrumbox.mm.timetrackingapi.model.Shift;
+import com.scrumbox.mm.timetrackingapi.model.*;
 import com.scrumbox.mm.timetrackingapi.persistence.domain.Tracking;
 import com.scrumbox.mm.timetrackingapi.persistence.domain.TimeTracking;
 import com.scrumbox.mm.timetrackingapi.persistence.repository.TimeTrackingRepository;
@@ -88,6 +85,11 @@ public class TrackingService {
             throw new TimeTrackingException("No puede fichar si tiene justificado el día por ausencia!");
         }
 
+        if (hasSanction(dni, act)) {
+            // TODO: DISPARAR NOTIFICATION
+            throw new TimeTrackingException("No puede fichar si tiene está sancionado!");
+        }
+
         // LOS AUSENTES SE CALCULAN COMPARANDO LAS SUM(DURACION DE HORAS TRABAJAS DEL EMPLEADO DEL MES) CONTRA  TOTALES * DIAS HABILES DEL MES
 
         if (act.getDay().getDayOfYear() == startTime.getDayOfYear()) {
@@ -109,7 +111,10 @@ public class TrackingService {
             tracking.setAbsences(0);
             tracking.setActive(true);
             tracking.setTimeTracking(new ArrayList<TimeTracking>());
+
+            tracking = trackingRepository.save(tracking);
         }
+
         return tracking;
     }
 
@@ -135,6 +140,21 @@ public class TrackingService {
         ).count() > 0;
     }
 
+    private Boolean hasSanction(Integer dni, TimeTracking today) {
+        Sanction sanction = usersApiClient.findSanctionByDni(dni);
+
+        if(sanction == null) {
+            return false;
+        }
+
+        List<SanctionDetail> sanctionDetail = sanction.getSanctionDetail();
+
+
+        return sanctionDetail.stream().filter(it ->
+                it.getStart().compareTo(today.getStart()) * today.getStart().compareTo(it.getEnd()) >= 0
+        ).count() > 0;
+    }
+
     private Boolean hasValidShift(Integer dni, TimeTracking timeTracking) {
         try {
             Integer shitId = usersApiClient.findEmployeeByDni(dni);
@@ -151,7 +171,7 @@ public class TrackingService {
 
             return day.getHourOfDay() < hour;
 
-        } catch (JSONException jse) {
+        } catch (Exception jse) {
             throw new TimeTrackingException(jse.getMessage());
         }
     }
