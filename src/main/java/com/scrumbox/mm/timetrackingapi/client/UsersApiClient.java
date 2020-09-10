@@ -18,6 +18,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Arrays;
@@ -44,13 +45,11 @@ public class UsersApiClient {
             //Get the user
             ResponseEntity<Justification> response = restTemplate.getForEntity(serviceUrl, Justification.class);
 
-            if (response.getStatusCode() == HttpStatus.NOT_FOUND) {
-                return null;
-            }
-
             log.info("Response: {}", response.getBody());
 
             return response.getBody();
+        } catch (RestClientException re) {
+            return null;
         } catch (Exception ex) {
             throw new UsersApiClientException("Error when trying to find justifications: " + ex.getMessage());
         }
@@ -61,18 +60,11 @@ public class UsersApiClient {
             InstanceInfo userInstance = eurekaClient.getApplication("users-api").getInstances().get(0);
             String serviceUrl = String.format("http://%s:%s/api/sanction/documentNumber?documentNumber=%s", userInstance.getIPAddr(), userInstance.getPort(), documentNumber.toString());
 
-            log.info("User service url: {}", serviceUrl);
-
-            //Get the user
             ResponseEntity<Sanction> response = restTemplate.getForEntity(serviceUrl, Sanction.class);
 
-            if (response.getStatusCode() == HttpStatus.NOT_FOUND) {
-                return null;
-            }
-
-            log.info("Response: {}", response.getBody());
-
             return response.getBody();
+        } catch (RestClientException re) {
+            return null;
         } catch (Exception ex) {
             throw new UsersApiClientException("Error when trying to find sanctions: " + ex.getMessage());
         }
@@ -80,25 +72,17 @@ public class UsersApiClient {
 
     public Integer findEmployeeByDocumentNumber(Integer documentNumber) throws UsersApiClientException {
         try {
-            //Find the User Microservice
             InstanceInfo userInstance = eurekaClient.getApplication("users-api").getInstances().get(0);
 
-            //Get the service URL
             String serviceUrl = String.format("http://%s:%s/api/employees/documentNumber?documentNumber=%s", userInstance.getIPAddr(), userInstance.getPort(), documentNumber.toString());
 
-            log.info("User service url: {}", serviceUrl);
-
-            //Get the Employee
             ResponseEntity<Employee> response = restTemplate.getForEntity(serviceUrl, Employee.class);
 
-            if (response.getStatusCode() == HttpStatus.NOT_FOUND) {
-                return null;
-            }
+            Employee employee = response.getBody();
 
-            log.info("Response: {}", response.getBody());
-
-            Employee employee = (Employee) response.getBody();
             return employee.getShiftId();
+        } catch (RestClientException re) {
+            return null;
         } catch (Exception ex) {
             throw new UsersApiClientException("Error when trying to find employees: " + ex.getMessage());
         }
@@ -110,18 +94,11 @@ public class UsersApiClient {
 
             String serviceUrl = String.format("http://%s:%s/api/shift/shiftId?shiftId=%d", userInstance.getIPAddr(), userInstance.getPort(), shiftId);
 
-            log.info("User service url: {}", serviceUrl);
-
-            //Get the user
             ResponseEntity<Shift> response = restTemplate.getForEntity(serviceUrl, Shift.class);
 
-            if (response.getStatusCode() == HttpStatus.NOT_FOUND) {
-                return null;
-            }
-
-            log.info("Response: {}", response.getBody());
-
             return response.getBody();
+        } catch (RestClientException re) {
+            return null;
         } catch (Exception ex) {
             throw new UsersApiClientException("Error when trying to find shifts: " + ex.getMessage());
         }
@@ -132,13 +109,12 @@ public class UsersApiClient {
             String serviceUrl = String.format("https://nolaborables.com.ar/api/v2/feriados/%s", today.getYear());
             ResponseEntity<Holiday[]> response = restTemplate.getForEntity(serviceUrl, Holiday[].class);
 
-            if (response.getStatusCode() == HttpStatus.NOT_FOUND) {
-                return null;
-            }
-
             List<Holiday> holidays = Arrays.asList(response.getBody());
 
             return holidays.stream().filter(it -> it.getDia() == today.getDayOfMonth() && it.getMes() == today.getMonthOfYear()).count() > 0;
+
+        } catch (RestClientException re) {
+            return null;
         } catch (Exception ex) {
             throw new UsersApiClientException("Error when trying to find holidays: " + ex.getMessage());
         }
