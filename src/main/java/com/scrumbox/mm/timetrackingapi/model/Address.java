@@ -7,7 +7,7 @@ import java.io.Serializable;
 @Data
 public class Address implements Serializable {
     private String address;
-    private String localidad;
-    private String provincia;
-    private String codigoPostal;
+    private String city;
+    private String country;
+    private String postalCode;
 }

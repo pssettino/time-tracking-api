@@ -29,7 +29,7 @@ public class TrackingController {
         return trackingService.save(tracking);
     }
 
-    @GetMapping("/{documentNumber}")
+    @PutMapping("/{documentNumber}")
     public Tracking trackTime(@PathVariable Integer documentNumber) {
         return trackingService.trackTime(documentNumber);
     }
