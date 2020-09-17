@@ -51,7 +51,8 @@ public class TrackingServiceTest {
     @Test
     public void test_findByDni_when_hasNot_value() {
         // GIVEN
-        Mockito.when(trackingRepository.findByDocumentNumber(Mockito.anyInt())).thenReturn(null);
+        Optional<Tracking> tracking = Optional.empty();
+        Mockito.when(trackingRepository.findByDocumentNumber(Mockito.anyInt())).thenReturn(tracking);
 
         // WHEN
         Tracking result = trackingService.findByDocumentNumber(33633264);

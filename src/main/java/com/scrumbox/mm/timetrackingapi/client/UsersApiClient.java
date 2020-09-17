@@ -42,7 +42,6 @@ public class UsersApiClient {
 
             log.info("User service url: {}", serviceUrl);
 
-            //Get the user
             ResponseEntity<Justification> response = restTemplate.getForEntity(serviceUrl, Justification.class);
 
             log.info("Response: {}", response.getBody());

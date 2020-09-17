@@ -25,13 +25,29 @@ public class TrackingController {
 
 
     @PutMapping("/")
-    public Tracking addTracking(@RequestBody Tracking tracking) {
-        return trackingService.save(tracking);
+    public void addTracking(@RequestBody Tracking tracking) {
+        List<TimeTracking> timeTrackingList = tracking.getTimeTracking();
+        System.out.println("IS_EMPTY:" + timeTrackingList.isEmpty());
+        if(!timeTrackingList.isEmpty()){
+            TimeTracking timeTracking = timeTrackingList.get(0);
+            System.out.println("timeTracking:" + timeTracking.getStart());
+            Boolean hasNotTracking = trackingService.findByDocumentNumber(tracking.getDocumentNumber()) == null ? true : false;
+            if(hasNotTracking) {
+                System.out.println("tracking : NULL");
+                tracking = trackingService.save(tracking);
+                System.out.println("tracking new: "+ tracking.getId());
+            }
+            System.out.println("tracking not null: ");
+            timeTracking.setTracking(tracking);
+            trackingService.save(timeTracking);
+        } else {
+            trackingService.save(tracking);
+        }
     }
 
     @PutMapping("/{documentNumber}")
-    public Tracking trackTime(@PathVariable Integer documentNumber) {
-        return trackingService.trackTime(documentNumber);
+    public void trackTime(@PathVariable Integer documentNumber) {
+        trackingService.trackTime(documentNumber);
     }
 
     @GetMapping("/documentNumber")

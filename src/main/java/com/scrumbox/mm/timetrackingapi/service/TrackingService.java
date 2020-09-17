@@ -54,6 +54,10 @@ public class TrackingService {
         return trackingRepository.save(tracking);
     }
 
+    public TimeTracking save(TimeTracking timeTracking) {
+        return timeTrackingRepository.save(timeTracking);
+    }
+
     public Tracking trackTime(Integer documentNumber) {
         Tracking tracking = findByDocumentNumber(documentNumber);
 
@@ -65,35 +69,11 @@ public class TrackingService {
         TimeTracking act = lastTimeTracking.stream().reduce((first, second) -> second)
                 .orElse(new TimeTracking(startTime.toDate(), startTime.toDate(), tracking));
 
-        if (usersApiClient.isHoliday(startTime)) {
-            // TODO: DISPARAR NOTIFICATION
-            throw new TimeTrackingException("Es Feriado!");
-        }
-
-        if (startTime.getDayOfWeek() == 7) {
-            // TODO: DISPARAR NOTIFICATION
-            throw new TimeTrackingException("Es domingo!");
-        }
-
-        if (!hasValidShift(documentNumber, act)) {
-            // TODO: DISPARAR NOTIFICATION
-            throw new TimeTrackingException("Turno incorrecto!");
-        }
-
-        if (hasJustification(documentNumber, act)) {
-            // TODO: DISPARAR NOTIFICATION
-            throw new TimeTrackingException("No puede fichar si tiene justificado el día por ausencia!");
-        }
-
-        if (hasSanction(documentNumber, act)) {
-            // TODO: DISPARAR NOTIFICATION
-            throw new TimeTrackingException("No puede fichar si tiene está sancionado!");
-        }
+        validateDay(documentNumber, startTime, act);
 
         // LOS AUSENTES SE CALCULAN COMPARANDO LAS SUM(DURACION DE HORAS TRABAJAS DEL EMPLEADO DEL MES) CONTRA  TOTALES * DIAS HABILES DEL MES
 
         if (act.getDay().getDayOfYear() == startTime.getDayOfYear()) {
-            log.info("NUEVO HORARIO DE FIN CON DURACION:  " + act.getDuration());
             act.setEndTime(startTime.getHourOfDay(), startTime.getMinuteOfHour());
         }
 
@@ -102,6 +82,48 @@ public class TrackingService {
         timeTrackingRepository.saveAll(lastTimeTracking);
 
         return tracking;
+    }
+
+    private void validateDay(Integer documentNumber, DateTime startTime, TimeTracking act) {
+        if (usersApiClient.isHoliday(startTime)) {
+            // TODO: DISPARAR NOTIFICATION
+            // throw new TimeTrackingException("Es Feriado!");
+            log.info(String.format("El numero de documento: %s fichó el día %s que es feriado",
+                    documentNumber.toString(), startTime.toDate().toString())
+            );
+        }
+
+        if (startTime.getDayOfWeek() == 7) {
+            // TODO: DISPARAR NOTIFICATION
+            // throw new TimeTrackingException("Es domingo!");
+            log.info(String.format("El numero de documento: %s fichó el día %s que es domingo",
+                    documentNumber.toString(), startTime.toDate().toString())
+            );
+        }
+
+        if (!hasValidShift(documentNumber, act)) {
+            // TODO: DISPARAR NOTIFICATION
+            log.info(String.format("El numero de documento: %s fichó el día %s que es el turno incorrecto",
+                    documentNumber.toString(), startTime.toDate().toString())
+            );
+            throw new TimeTrackingException("Turno incorrecto!");
+        }
+
+        if (hasJustification(documentNumber, act)) {
+            // TODO: DISPARAR NOTIFICATION
+            log.info(String.format("El numero de documento: %s fichó el día %s que tiene justificado el día por ausencia",
+                    documentNumber.toString(), startTime.toDate().toString())
+            );
+            throw new TimeTrackingException("No puede fichar si tiene justificado el día por ausencia!");
+        }
+
+        if (hasSanction(documentNumber, act)) {
+            // TODO: DISPARAR NOTIFICATION
+            log.info(String.format("El numero de documento: %s fichó el día %s que tiene una sación vigente",
+                    documentNumber.toString(), startTime.toDate().toString())
+            );
+            throw new TimeTrackingException("No puede fichar si tiene está sancionado!");
+        }
     }
 
     private Tracking initializeTracking(Integer documentNumber, Tracking tracking) {
@@ -121,7 +143,7 @@ public class TrackingService {
     // @Cacheable
     public Tracking findByDocumentNumber(Integer documentNumber) {
         Optional<Tracking> tracking = trackingRepository.findByDocumentNumber(documentNumber);
-        return tracking != null ? tracking.get() : null;
+        return tracking.isPresent() ? tracking.get() : null;
     }
 
 
@@ -158,7 +180,16 @@ public class TrackingService {
     private Boolean hasValidShift(Integer documentNumber, TimeTracking timeTracking) {
         try {
             Integer shitId = usersApiClient.findEmployeeByDocumentNumber(documentNumber);
+
+            if(shitId ==  null) {
+                return false;
+            }
+
             Shift shift = usersApiClient.findShiftByShiftId(shitId);
+
+            if(shift ==  null) {
+                return null;
+            }
 
             List<Integer> daysOfWeek = shift.getDaysOfWeek();
             DateTime day = timeTracking.getDay();
