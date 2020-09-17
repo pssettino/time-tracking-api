@@ -146,6 +146,7 @@ public class TrackingService {
             return false;
         }
 
+        // TODO: Remove hardcode values
         return absenceDetail.stream().filter(it -> it.getType().equalsIgnoreCase("justificacion") &&
                 (it.getStart().compareTo(today.getStart()) * today.getStart().compareTo(it.getEnd()) >= 0)
         ).count() > 0;
@@ -156,6 +157,7 @@ public class TrackingService {
             return false;
         }
 
+        // TODO: Remove hardcode values
         return absenceDetail.stream().filter(it ->  it.getType().equalsIgnoreCase("sancion") &&
                 (it.getStart().compareTo(today.getStart()) * today.getStart().compareTo(it.getEnd()) >= 0)
         ).count() > 0;
