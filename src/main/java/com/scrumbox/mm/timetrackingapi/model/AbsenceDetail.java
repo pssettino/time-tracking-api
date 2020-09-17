@@ -6,8 +6,9 @@ import java.io.Serializable;
 import java.util.Date;
 
 @Data
-public class JustificationDetail implements Serializable {
+public class AbsenceDetail implements Serializable {
     private Date start;
     private Date end;
+    private String type;
     private String description;
 }

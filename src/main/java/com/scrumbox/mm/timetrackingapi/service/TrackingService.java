@@ -1,7 +1,5 @@
 package com.scrumbox.mm.timetrackingapi.service;
 
-import com.netflix.appinfo.InstanceInfo;
-import com.netflix.discovery.EurekaClient;
 import com.scrumbox.mm.timetrackingapi.client.UsersApiClient;
 import com.scrumbox.mm.timetrackingapi.exception.TimeTrackingException;
 import com.scrumbox.mm.timetrackingapi.model.*;
@@ -10,17 +8,11 @@ import com.scrumbox.mm.timetrackingapi.persistence.domain.TimeTracking;
 import com.scrumbox.mm.timetrackingapi.persistence.repository.TimeTrackingRepository;
 import com.scrumbox.mm.timetrackingapi.persistence.repository.TrackingRepository;
 import com.scrumbox.mm.timetrackingapi.utils.DateUtils;
-import org.codehaus.jettison.json.JSONException;
-import org.codehaus.jettison.json.JSONObject;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.cloud.client.loadbalancer.LoadBalanced;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
 
@@ -109,7 +101,9 @@ public class TrackingService {
             throw new TimeTrackingException("Turno incorrecto!");
         }
 
-        if (hasJustification(documentNumber, act)) {
+        List<AbsenceDetail> absenceDetails = getAbsenceDetails(documentNumber);
+
+        if (hasJustification(documentNumber, act, absenceDetails)) {
             // TODO: DISPARAR NOTIFICATION
             log.info(String.format("El numero de documento: %s fichó el día %s que tiene justificado el día por ausencia",
                     documentNumber.toString(), startTime.toDate().toString())
@@ -117,7 +111,7 @@ public class TrackingService {
             throw new TimeTrackingException("No puede fichar si tiene justificado el día por ausencia!");
         }
 
-        if (hasSanction(documentNumber, act)) {
+        if (hasSanction(documentNumber, act, absenceDetails)) {
             // TODO: DISPARAR NOTIFICATION
             log.info(String.format("El numero de documento: %s fichó el día %s que tiene una sación vigente",
                     documentNumber.toString(), startTime.toDate().toString())
@@ -147,34 +141,30 @@ public class TrackingService {
     }
 
 
-    private Boolean hasJustification(Integer documentNumber, TimeTracking today) {
-        Justification justification = usersApiClient.findJustificationByDocumentNumber(documentNumber);
-
-        if(justification == null) {
+    private Boolean hasJustification(Integer documentNumber, TimeTracking today, List<AbsenceDetail> absenceDetail) {
+        if(absenceDetail.isEmpty()) {
             return false;
         }
 
-        List<JustificationDetail> justificationDetail = justification.getJustificationDetail();
-
-
-        return justificationDetail.stream().filter(it ->
-                it.getStart().compareTo(today.getStart()) * today.getStart().compareTo(it.getEnd()) >= 0
+        return absenceDetail.stream().filter(it -> it.getType().equalsIgnoreCase("justificacion") &&
+                (it.getStart().compareTo(today.getStart()) * today.getStart().compareTo(it.getEnd()) >= 0)
         ).count() > 0;
     }
 
-    private Boolean hasSanction(Integer documentNumber, TimeTracking today) {
-        Sanction sanction = usersApiClient.findSanctionByDocumentNumber(documentNumber);
-
-        if(sanction == null) {
+    private Boolean hasSanction(Integer documentNumber, TimeTracking today, List<AbsenceDetail> absenceDetail) {
+        if(absenceDetail.isEmpty()) {
             return false;
         }
 
-        List<SanctionDetail> sanctionDetail = sanction.getSanctionDetail();
-
-
-        return sanctionDetail.stream().filter(it ->
-                it.getStart().compareTo(today.getStart()) * today.getStart().compareTo(it.getEnd()) >= 0
+        return absenceDetail.stream().filter(it ->  it.getType().equalsIgnoreCase("sancion") &&
+                (it.getStart().compareTo(today.getStart()) * today.getStart().compareTo(it.getEnd()) >= 0)
         ).count() > 0;
+    }
+
+    private List<AbsenceDetail> getAbsenceDetails(Integer documentNumber) {
+        Absence absence = usersApiClient.findAbsenceByDocumentNumber(documentNumber);
+
+       return absence.getAbsenceDetails();
     }
 
     private Boolean hasValidShift(Integer documentNumber, TimeTracking timeTracking) {

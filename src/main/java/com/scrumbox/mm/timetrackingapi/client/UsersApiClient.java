@@ -4,18 +4,13 @@ import com.netflix.appinfo.InstanceInfo;
 import com.netflix.discovery.EurekaClient;
 import com.scrumbox.mm.timetrackingapi.exception.UsersApiClientException;
 import com.scrumbox.mm.timetrackingapi.model.*;
-import com.scrumbox.mm.timetrackingapi.service.TrackingService;
-import org.codehaus.jettison.json.JSONException;
-import org.codehaus.jettison.json.JSONObject;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
@@ -23,7 +18,6 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
 @Component
 public class UsersApiClient {
@@ -35,14 +29,14 @@ public class UsersApiClient {
     private @Qualifier("eurekaClient")
     EurekaClient eurekaClient;
 
-    public Justification findJustificationByDocumentNumber(Integer documentNumber) throws UsersApiClientException {
+    public Absence findAbsenceByDocumentNumber(Integer documentNumber) throws UsersApiClientException {
         try {
             InstanceInfo userInstance = eurekaClient.getApplication("users-api").getInstances().get(0);
-            String serviceUrl = String.format("http://%s:%s/api/justification/documentNumber?documentNumber=%s", userInstance.getIPAddr(), userInstance.getPort(), documentNumber.toString());
+            String serviceUrl = String.format("http://%s:%s/api/absences/documentNumber?documentNumber=%s", userInstance.getIPAddr(), userInstance.getPort(), documentNumber.toString());
 
             log.info("User service url: {}", serviceUrl);
 
-            ResponseEntity<Justification> response = restTemplate.getForEntity(serviceUrl, Justification.class);
+            ResponseEntity<Absence> response = restTemplate.getForEntity(serviceUrl, Absence.class);
 
             log.info("Response: {}", response.getBody());
 
