@@ -54,17 +54,19 @@ public class TrackingController {
     }
 
     private void validateStartAndEndDay(TimeTracking timeTracking, Tracking dbTracking) {
-        Stream<TimeTracking> timeTrackingStream = dbTracking.getTimeTracking().stream();
-        boolean hasBeforeStartDay = timeTrackingStream.filter(it -> timeTracking.getStart().before(it.getStart())).count() > 0;
+        if(!dbTracking.getTimeTracking().isEmpty()) {
+            Stream<TimeTracking> timeTrackingStream = dbTracking.getTimeTracking().stream();
+            boolean hasBeforeStartDay = timeTrackingStream.filter(it -> timeTracking.getStart().before(it.getStart())).count() > 0;
 
-        if (hasBeforeStartDay) {
-            throw new TimeTrackingException("Has before start day");
-        }
+            if (hasBeforeStartDay) {
+                throw new TimeTrackingException("Has before start day");
+            }
 
-        boolean hasBeforeEndDay = timeTrackingStream.filter(it -> timeTracking.getEnd().before(it.getEnd())).count() > 0;
+            boolean hasBeforeEndDay = timeTrackingStream.filter(it -> timeTracking.getEnd().before(it.getEnd())).count() > 0;
 
-        if (hasBeforeEndDay) {
-            throw new TimeTrackingException("Has before end day");
+            if (hasBeforeEndDay) {
+                throw new TimeTrackingException("Has before end day");
+            }
         }
     }
 
