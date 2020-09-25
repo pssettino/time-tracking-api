@@ -39,18 +39,24 @@ public class TrackingController {
         if(!timeTrackingList.isEmpty()) {
             TimeTracking timeTracking = timeTrackingList.get(0);
             Tracking dbTracking = trackingService.findByDocumentNumber(tracking.getDocumentNumber());
-            if (dbTracking == null) {
-                tracking = trackingService.save(tracking);
-            }
+
+            tracking = flushTracking(dbTracking, tracking);
 
             validateStartAndEndDay(timeTracking, dbTracking);
-
 
             timeTracking.setTracking(tracking);
             trackingService.save(timeTracking);
         } else {
             throw new TimeTrackingException("Time Tracking is mandatory!");
         }
+    }
+
+    private Tracking flushTracking(Tracking dbTracking, Tracking tracking) {
+        if (dbTracking == null) {
+            return trackingService.save(tracking);
+        }
+
+        return dbTracking;
     }
 
     private void validateStartAndEndDay(TimeTracking timeTracking, Tracking dbTracking) {
