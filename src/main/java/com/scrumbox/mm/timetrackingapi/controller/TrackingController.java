@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 @RestController
@@ -61,14 +62,14 @@ public class TrackingController {
 
     private void validateStartAndEndDay(TimeTracking timeTracking, Tracking dbTracking) {
         if(!dbTracking.getTimeTracking().isEmpty()) {
-            Stream<TimeTracking> timeTrackingStream = dbTracking.getTimeTracking().stream();
-            boolean hasBeforeStartDay = timeTrackingStream.filter(it -> timeTracking.getStart().before(it.getStart())).count() > 0;
+            Supplier<Stream<TimeTracking>> timeTrackingStream = () -> dbTracking.getTimeTracking().stream();
+            boolean hasBeforeStartDay = timeTrackingStream.get().filter(it -> timeTracking.getStart().before(it.getStart())).count() > 0;
 
             if (hasBeforeStartDay) {
                 throw new TimeTrackingException("Has before start day");
             }
 
-            boolean hasBeforeEndDay = timeTrackingStream.filter(it -> timeTracking.getEnd().before(it.getEnd())).count() > 0;
+            boolean hasBeforeEndDay = timeTrackingStream.get().filter(it -> timeTracking.getEnd().before(it.getEnd())).count() > 0;
 
             if (hasBeforeEndDay) {
                 throw new TimeTrackingException("Has before end day");
