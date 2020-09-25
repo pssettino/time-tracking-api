@@ -75,8 +75,8 @@ public class TimeTrackingTest {
         try {
             new TimeTracking(new DateTime(2009, 1, 1, 13, 0, 0 ,0).toDate(),
                     new DateTime(2009, 1, 1, 12, 0, 0, 0).toDate(), null);
-            Assertions.fail("Expected IllegalArgumentException");
-        } catch (IllegalArgumentException e) {
+            Assertions.fail("Expected RuntimeException");
+        } catch (RuntimeException e) {
             // ok, expected
         }
 
@@ -84,8 +84,8 @@ public class TimeTrackingTest {
             TimeTracking act = new TimeTracking(new DateTime(2009, 1, 1, 11, 0, 0 ,0).toDate(),
                     new DateTime(2009, 1, 1, 12, 0, 0, 0).toDate(), null);
             act.setEndTime(10, 0);
-            Assertions.fail("Expected IllegalArgumentException");
-        } catch (IllegalArgumentException e) {
+            Assertions.fail("Expected RuntimeException");
+        } catch (RuntimeException e) {
             // ok, expected
         }
 
@@ -93,8 +93,8 @@ public class TimeTrackingTest {
             TimeTracking act = new TimeTracking(new DateTime(2009, 1, 1, 11, 0, 0 ,0).toDate(),
                     new DateTime(2009, 1, 1, 12, 0, 0, 0).toDate(), null);
             act.setEndTime(13, 0);
-        } catch (IllegalArgumentException e) {
-            Assertions.fail("Unexpected IllegalArgumentException");
+        } catch (RuntimeException e) {
+            Assertions.fail("Unexpected RuntimeException");
         }
     }
 
