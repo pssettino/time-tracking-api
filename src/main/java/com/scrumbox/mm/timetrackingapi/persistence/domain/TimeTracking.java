@@ -1,5 +1,6 @@
 package com.scrumbox.mm.timetrackingapi.persistence.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.scrumbox.mm.timetrackingapi.exception.TimeTrackingException;
 import lombok.*;
 import org.joda.time.DateTime;
@@ -63,6 +64,7 @@ public class TimeTracking implements Serializable, Comparable<TimeTracking> {
      * Returns the day of the activity.
      * Hours, minutes, seconds of the returned value are to be ignored.
      */
+    @JsonIgnore
     public DateTime getDay() {
         return new DateTime(getStart()).withMillisOfDay(0);
     }
