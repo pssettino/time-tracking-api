@@ -42,7 +42,7 @@ public class TrackingController {
 
             tracking = flushTracking(dbTracking, tracking);
 
-            validateStartAndEndDay(timeTracking, dbTracking);
+            validateStartAndEndDay(timeTracking, tracking);
 
             timeTracking.setTracking(tracking);
             trackingService.save(timeTracking);
