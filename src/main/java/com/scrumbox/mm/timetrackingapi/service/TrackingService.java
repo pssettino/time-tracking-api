@@ -189,7 +189,7 @@ public class TrackingService {
                 return false;
             }
 
-            Integer hour = shift.getHour();
+            Integer hour = shift.getStartHour();
             // TODO: que onda los minutos?? Integer minutes = shift.getMinutes();
 
             return day.getHourOfDay() < hour;

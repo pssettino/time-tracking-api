@@ -11,8 +11,10 @@ public class Shift implements Serializable{
     private Integer shiftId;
     private String descripcion;
     private List<Integer> daysOfWeek;
-    private Integer hour;
-    private Integer minutes;
+    private Integer startHour;
+    private Integer startMinutes;
+    private Integer endtHour;
+    private Integer endtMinutes;
     private Boolean extraHoursAvailable;
 }
 

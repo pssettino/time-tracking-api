@@ -50,8 +50,8 @@ public class TrackingController {
         trackingService.trackTime(documentNumber);
     }
 
-    @GetMapping("/documentNumber")
-    public Tracking findByDocumentNumber(@RequestParam Integer documentNumber) {
+    @GetMapping("/{documentNumber}")
+    public Tracking findByDocumentNumber(@PathVariable Integer documentNumber) {
         return trackingService.findByDocumentNumber(documentNumber);
     }
 }
