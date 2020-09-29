@@ -1,6 +1,8 @@
 package com.scrumbox.mm.timetrackingapi.unit.service;
 
 import com.scrumbox.mm.timetrackingapi.client.UsersApiClient;
+import com.scrumbox.mm.timetrackingapi.model.Shift;
+import com.scrumbox.mm.timetrackingapi.model.TrackingRequest;
 import com.scrumbox.mm.timetrackingapi.persistence.domain.Tracking;
 import com.scrumbox.mm.timetrackingapi.persistence.repository.TimeTrackingRepository;
 import com.scrumbox.mm.timetrackingapi.persistence.repository.TrackingRepository;
@@ -10,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -65,13 +68,26 @@ public class TrackingServiceTest {
     public void test_save_when_is_ok() {
         // GIVEN
         Optional<Tracking> tracking = Optional.of(new Tracking(33633264, 0, true));
-        Mockito.when(trackingRepository.save(Mockito.any())).thenReturn(tracking.get());
+        Mockito.when(trackingRepository.findByDocumentNumber(Mockito.anyInt())).thenReturn(tracking);
+        Mockito.when(trackingRepository.save(Mockito.any())).thenReturn(tracking);
+        Mockito.when(usersApiClient.findEmployeeByDocumentNumber(Mockito.anyInt())).thenReturn(1);
+        Mockito.when(usersApiClient.findAbsenceByDocumentNumber(Mockito.anyInt())).thenReturn(null);
+
+        Shift shift = new Shift();
+        shift.setStartHour(9);
+        List<Integer> days = new ArrayList<>();
+        for (int i=0;i<8;i++) {
+            days.add(i);
+        }
+        shift.setDaysOfWeek(days);
+        Mockito.when(usersApiClient.findShiftByShiftId(Mockito.anyInt())).thenReturn(shift);
+
 
         // WHEN
-        Tracking result = trackingService.save(tracking.get());
+        trackingService.trackTime(new TrackingRequest(33633264, new Date(), new Date()));
 
         // THEN
-        Assertions.assertTrue(result.getDocumentNumber() == 33633264);
+        // Mockito.verify(trackingRepository.save(tracking.get()));
     }
 
 }

@@ -15,6 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 //@CacheConfig(cacheNames = {"tracking"})
 @Service
@@ -42,12 +44,26 @@ public class TrackingService {
         return trackingRepository.findAll();
     }
 
-    public Tracking save(Tracking tracking) {
-        return trackingRepository.save(tracking);
-    }
+    public void trackTime(TrackingRequest request) {
+        // 1.- Obtengo el timeTracking que viene en el request, dentro de tracking como list.
+        // 2.- Si la lista de timeTracking esta vacía lanzo exception
+        // 3.- Caso contrario obtengo el primer elemento y me fijo si tiene el tracking creado o ya existe.
+        // 4.- si no tiene tracking lo creo y luego al timeTracking le asigno su tracking y guardo el timeTracking
 
-    public TimeTracking save(TimeTracking timeTracking) {
-        return timeTrackingRepository.save(timeTracking);
+        Tracking tracking = findByDocumentNumber(request.getDocumentNumber());
+
+        tracking = initializeTracking(request.getDocumentNumber(), tracking);
+
+        List<TimeTracking> timeTrackingList = tracking.getTimeTracking();
+
+        // TODO: SE PUEDE FICHAR A PASADO y A FUTURO, OVIAMENTE SIN SUPERPONER FECHAS.?
+        validateStartAndEndDay(timeTrackingList, request);
+
+        TimeTracking timeTracking = new TimeTracking(request.getStart(), request.getEnd(), tracking);
+
+        validateDay(request.getDocumentNumber(), new DateTime(timeTracking.getStart()), timeTracking);
+
+        timeTrackingRepository.save(timeTracking);
     }
 
     public Tracking trackTime(Integer documentNumber) {
@@ -74,6 +90,30 @@ public class TrackingService {
         timeTrackingRepository.saveAll(lastTimeTracking);
 
         return tracking;
+    }
+
+    private void validateStartAndEndDay(List<TimeTracking> timeTracking, TrackingRequest request) {
+        if(timeTracking!=null && !timeTracking.isEmpty()) {
+            Supplier<Stream<TimeTracking>> timeTrackingStream = () -> timeTracking.stream();
+
+            boolean periodExist = timeTrackingStream.get().filter(it ->
+                    request.getStart().equals(it.getStart()) &&
+                            request.getEnd().equals(it.getEnd())
+            ).count() > 0;
+
+            if (periodExist) {
+                throw new TimeTrackingException("Period does exist");
+            }
+
+            boolean isInvalidPeriod = timeTrackingStream.get().filter(it ->
+                    request.getStart().after(it.getStart()) ||
+                            request.getEnd().before(it.getEnd())
+            ).count() > 0;
+
+            if (isInvalidPeriod) {
+                throw new TimeTrackingException("Period does exist");
+            }
+        }
     }
 
     private void validateDay(Integer documentNumber, DateTime startTime, TimeTracking act) {
@@ -103,7 +143,7 @@ public class TrackingService {
 
         List<AbsenceDetail> absenceDetails = getAbsenceDetails(documentNumber);
 
-        if (hasJustification(documentNumber, act, absenceDetails)) {
+        if (absenceDetails != null && hasJustification(documentNumber, act, absenceDetails)) {
             // TODO: DISPARAR NOTIFICATION
             log.info(String.format("El numero de documento: %s fichó el día %s que tiene justificado el día por ausencia",
                     documentNumber.toString(), startTime.toDate().toString())
@@ -111,7 +151,7 @@ public class TrackingService {
             throw new TimeTrackingException("No puede fichar si tiene justificado el día por ausencia!");
         }
 
-        if (hasSanction(documentNumber, act, absenceDetails)) {
+        if (absenceDetails != null && hasSanction(documentNumber, act, absenceDetails)) {
             // TODO: DISPARAR NOTIFICATION
             log.info(String.format("El numero de documento: %s fichó el día %s que tiene una sación vigente",
                     documentNumber.toString(), startTime.toDate().toString())
@@ -126,7 +166,7 @@ public class TrackingService {
             tracking.setDocumentNumber(documentNumber);
             tracking.setAbsences(0);
             tracking.setActive(true);
-            tracking.setTimeTracking(new ArrayList<TimeTracking>());
+            tracking.setTimeTracking(new ArrayList<>());
 
             tracking = trackingRepository.save(tracking);
         }
@@ -136,8 +176,7 @@ public class TrackingService {
 
     // @Cacheable
     public Tracking findByDocumentNumber(Integer documentNumber) {
-        Optional<Tracking> tracking = trackingRepository.findByDocumentNumber(documentNumber);
-        return tracking.isPresent() ? tracking.get() : null;
+        return trackingRepository.findByDocumentNumber(documentNumber).orElse(null);
     }
 
 
@@ -166,6 +205,10 @@ public class TrackingService {
     private List<AbsenceDetail> getAbsenceDetails(Integer documentNumber) {
         Absence absence = usersApiClient.findAbsenceByDocumentNumber(documentNumber);
 
+        if(absence==null) {
+            return null;
+        }
+
        return absence.getAbsenceDetails();
     }
 
@@ -180,7 +223,7 @@ public class TrackingService {
             Shift shift = usersApiClient.findShiftByShiftId(shitId);
 
             if(shift ==  null) {
-                return null;
+                return false;
             }
 
             List<Integer> daysOfWeek = shift.getDaysOfWeek();
