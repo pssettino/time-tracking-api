@@ -65,7 +65,7 @@ public class TrackingServiceTest {
     }
 
     @Test
-    public void test_save_when_is_ok() {
+    public void test_save_when_manual_track_is_ok() {
         // GIVEN
         Optional<Tracking> tracking = Optional.of(new Tracking(33633264, 0, true));
         Mockito.when(trackingRepository.findByDocumentNumber(Mockito.anyInt())).thenReturn(tracking);
@@ -85,9 +85,28 @@ public class TrackingServiceTest {
 
         // WHEN
         trackingService.trackTime(new TrackingRequest(33633264, new Date(), new Date()));
-
-        // THEN
-        // Mockito.verify(trackingRepository.save(tracking.get()));
     }
 
+    @Test
+    public void test_save_when_automatic_track_is_ok() {
+        // GIVEN
+        Optional<Tracking> tracking = Optional.of(new Tracking(33633264, 0, true));
+        Mockito.when(trackingRepository.findByDocumentNumber(Mockito.anyInt())).thenReturn(tracking);
+        Mockito.when(trackingRepository.save(Mockito.any())).thenReturn(tracking);
+        Mockito.when(usersApiClient.findEmployeeByDocumentNumber(Mockito.anyInt())).thenReturn(1);
+        Mockito.when(usersApiClient.findAbsenceByDocumentNumber(Mockito.anyInt())).thenReturn(null);
+
+        Shift shift = new Shift();
+        shift.setStartHour(9);
+        List<Integer> days = new ArrayList<>();
+        for (int i=0;i<8;i++) {
+            days.add(i);
+        }
+        shift.setDaysOfWeek(days);
+        Mockito.when(usersApiClient.findShiftByShiftId(Mockito.anyInt())).thenReturn(shift);
+
+
+        // WHEN
+        trackingService.trackTime(33633264);
+    }
 }

@@ -66,7 +66,7 @@ public class TrackingService {
         timeTrackingRepository.save(timeTracking);
     }
 
-    public Tracking trackTime(Integer documentNumber) {
+    public void trackTime(Integer documentNumber) {
         Tracking tracking = findByDocumentNumber(documentNumber);
 
         tracking = initializeTracking(documentNumber, tracking);
@@ -88,8 +88,6 @@ public class TrackingService {
         lastTimeTracking.add(act);
 
         timeTrackingRepository.saveAll(lastTimeTracking);
-
-        return tracking;
     }
 
     private void validateStartAndEndDay(List<TimeTracking> timeTracking, TrackingRequest request) {
@@ -169,6 +167,9 @@ public class TrackingService {
             tracking.setTimeTracking(new ArrayList<>());
 
             tracking = trackingRepository.save(tracking);
+        }
+        if(tracking.getTimeTracking() == null) {
+            tracking.setTimeTracking(new ArrayList<>());
         }
 
         return tracking;
