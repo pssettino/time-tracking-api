@@ -1,12 +1,15 @@
 package com.scrumbox.mm.timetrackingapi.unit.service;
 
 import com.scrumbox.mm.timetrackingapi.client.UsersApiClient;
+import com.scrumbox.mm.timetrackingapi.exception.TimeTrackingException;
 import com.scrumbox.mm.timetrackingapi.model.Shift;
 import com.scrumbox.mm.timetrackingapi.model.TrackingRequest;
+import com.scrumbox.mm.timetrackingapi.persistence.domain.TimeTracking;
 import com.scrumbox.mm.timetrackingapi.persistence.domain.Tracking;
 import com.scrumbox.mm.timetrackingapi.persistence.repository.TimeTrackingRepository;
 import com.scrumbox.mm.timetrackingapi.persistence.repository.TrackingRepository;
 import com.scrumbox.mm.timetrackingapi.service.TrackingService;
+import org.joda.time.DateTime;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -68,6 +71,11 @@ public class TrackingServiceTest {
     public void test_save_when_manual_track_is_ok() {
         // GIVEN
         Optional<Tracking> tracking = Optional.of(new Tracking(33633264, 0, true));
+        TimeTracking timeTracking = new TimeTracking(new DateTime(2020, 9, 1, 11, 0, 0, 0).toDate(),
+                new DateTime(2020, 9, 1, 18, 0, 0 ,0).toDate(), null);
+        List<TimeTracking> list = new ArrayList<>();
+        list.add(timeTracking);
+        tracking.get().setTimeTracking(list);
         Mockito.when(trackingRepository.findByDocumentNumber(Mockito.anyInt())).thenReturn(tracking);
         Mockito.when(trackingRepository.save(Mockito.any())).thenReturn(tracking);
         Mockito.when(usersApiClient.findEmployeeByDocumentNumber(Mockito.anyInt())).thenReturn(1);
@@ -88,9 +96,56 @@ public class TrackingServiceTest {
     }
 
     @Test
+    public void test_save_when_manual_track_has_equal_period() {
+        // GIVEN
+        Optional<Tracking> tracking = Optional.of(new Tracking(33633264, 0, true));
+        TimeTracking timeTracking = new TimeTracking(new DateTime(2020, 9, 1, 11, 0, 0, 0).toDate(),
+                new DateTime(2020, 9, 1, 18, 0, 0 ,0).toDate(), null);
+        List<TimeTracking> list = new ArrayList<>();
+        list.add(timeTracking);
+        tracking.get().setTimeTracking(list);
+        Mockito.when(trackingRepository.findByDocumentNumber(Mockito.anyInt())).thenReturn(tracking);
+
+
+        // WHEN
+        try{
+            trackingService.trackTime(new TrackingRequest(33633264, new DateTime(2020, 9, 1, 11, 0, 0, 0).toDate(), new DateTime(2020, 9, 1, 18, 0, 0, 0).toDate()));
+            Assertions.assertTrue(false);
+        }catch (TimeTrackingException ex){
+            Assertions.assertTrue(true);
+        }
+    }
+
+    @Test
+    public void test_save_when_manual_track_has_invalid_period() {
+        // GIVEN
+        Optional<Tracking> tracking = Optional.of(new Tracking(33633264, 0, true));
+        TimeTracking timeTracking = new TimeTracking(new DateTime(2020, 9, 1, 11, 0, 0, 0).toDate(),
+                new DateTime(2020, 9, 1, 18, 0, 0 ,0).toDate(), null);
+        List<TimeTracking> list = new ArrayList<>();
+        list.add(timeTracking);
+        tracking.get().setTimeTracking(list);
+        Mockito.when(trackingRepository.findByDocumentNumber(Mockito.anyInt())).thenReturn(tracking);
+
+
+        // WHEN
+        try{
+            trackingService.trackTime(new TrackingRequest(33633264, new DateTime(2020, 9, 1, 10, 0, 0, 0).toDate(), new DateTime(2020, 9, 1, 15, 0, 0, 0).toDate()));
+            Assertions.assertTrue(false);
+        }catch (TimeTrackingException ex){
+            Assertions.assertTrue(true);
+        }
+    }
+
+    @Test
     public void test_save_when_automatic_track_is_ok() {
         // GIVEN
         Optional<Tracking> tracking = Optional.of(new Tracking(33633264, 0, true));
+        TimeTracking timeTracking = new TimeTracking(new DateTime(2020, 9, 1, 11, 0, 0, 0).toDate(),
+                new DateTime(2020, 9, 1, 18, 0, 0 ,0).toDate(), null);
+        List<TimeTracking> list = new ArrayList<>();
+        list.add(timeTracking);
+        tracking.get().setTimeTracking(list);
         Mockito.when(trackingRepository.findByDocumentNumber(Mockito.anyInt())).thenReturn(tracking);
         Mockito.when(trackingRepository.save(Mockito.any())).thenReturn(tracking);
         Mockito.when(usersApiClient.findEmployeeByDocumentNumber(Mockito.anyInt())).thenReturn(1);

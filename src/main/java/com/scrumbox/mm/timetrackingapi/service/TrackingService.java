@@ -18,7 +18,6 @@ import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-//@CacheConfig(cacheNames = {"tracking"})
 @Service
 public class TrackingService {
 
@@ -39,7 +38,6 @@ public class TrackingService {
         this.usersApiClient = usersApiClient;
     }
 
-    // @Cacheable
     public List<Tracking> getAll() {
         return trackingRepository.findAll();
     }
@@ -83,6 +81,8 @@ public class TrackingService {
 
         if (act.getDay().getDayOfYear() == startTime.getDayOfYear()) {
             act.setEndTime(startTime.getHourOfDay(), startTime.getMinuteOfHour());
+        } else {
+            act =  new TimeTracking(startTime.toDate(), startTime.toDate(), tracking);
         }
 
         lastTimeTracking.add(act);
@@ -90,8 +90,12 @@ public class TrackingService {
         timeTrackingRepository.saveAll(lastTimeTracking);
     }
 
+    public Tracking findByDocumentNumber(Integer documentNumber) {
+        return trackingRepository.findByDocumentNumber(documentNumber).orElse(null);
+    }
+
     private void validateStartAndEndDay(List<TimeTracking> timeTracking, TrackingRequest request) {
-        if(timeTracking!=null && !timeTracking.isEmpty()) {
+        if (timeTracking != null && !timeTracking.isEmpty()) {
             Supplier<Stream<TimeTracking>> timeTrackingStream = () -> timeTracking.stream();
 
             boolean periodExist = timeTrackingStream.get().filter(it ->
@@ -104,8 +108,10 @@ public class TrackingService {
             }
 
             boolean isInvalidPeriod = timeTrackingStream.get().filter(it ->
-                    request.getStart().after(it.getStart()) ||
-                            request.getEnd().before(it.getEnd())
+                    (request.getStart().after(it.getStart()) &&
+                            request.getStart().before(it.getEnd())) ||
+                            (request.getEnd().after(it.getStart()) &&
+                                    request.getEnd().before(it.getEnd()))
             ).count() > 0;
 
             if (isInvalidPeriod) {
@@ -174,12 +180,6 @@ public class TrackingService {
 
         return tracking;
     }
-
-    // @Cacheable
-    public Tracking findByDocumentNumber(Integer documentNumber) {
-        return trackingRepository.findByDocumentNumber(documentNumber).orElse(null);
-    }
-
 
     private Boolean hasJustification(Integer documentNumber, TimeTracking today, List<AbsenceDetail> absenceDetail) {
         if(absenceDetail.isEmpty()) {
