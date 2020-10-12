@@ -21,4 +21,5 @@ public class Employee implements Serializable {
     private Date birthday;
     private Integer shiftId;
     private String imageProfile;
+    private Boolean extraHoursAvailable;
 }

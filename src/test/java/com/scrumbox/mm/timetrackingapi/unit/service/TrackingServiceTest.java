@@ -140,13 +140,17 @@ public class TrackingServiceTest {
     @Test
     public void test_save_when_automatic_track_is_ok() {
         // GIVEN
-        Optional<Tracking> tracking = Optional.of(new Tracking(33633264, 0, true));
+        Tracking tracking = new Tracking(33633264, 0, true);
+        Optional<Tracking> optionalTracking = Optional.of(tracking);
+
         TimeTracking timeTracking = new TimeTracking(new DateTime(2020, 9, 1, 11, 0, 0, 0).toDate(),
                 new DateTime(2020, 9, 1, 18, 0, 0 ,0).toDate(), null);
+
         List<TimeTracking> list = new ArrayList<>();
-        list.add(timeTracking);
-        tracking.get().setTimeTracking(list);
-        Mockito.when(trackingRepository.findByDocumentNumber(Mockito.anyInt())).thenReturn(tracking);
+        //list.add(timeTracking);
+
+        optionalTracking.get().setTimeTracking(list);
+        Mockito.when(trackingRepository.findByDocumentNumber(Mockito.anyInt())).thenReturn(optionalTracking);
         Mockito.when(trackingRepository.save(Mockito.any())).thenReturn(tracking);
         Mockito.when(usersApiClient.findEmployeeByDocumentNumber(Mockito.anyInt())).thenReturn(1);
         Mockito.when(usersApiClient.findAbsenceByDocumentNumber(Mockito.anyInt())).thenReturn(null);

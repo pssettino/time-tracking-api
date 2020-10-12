@@ -15,6 +15,5 @@ public class Shift implements Serializable{
     private Integer startMinutes;
     private Integer endtHour;
     private Integer endtMinutes;
-    private Boolean extraHoursAvailable;
 }
 

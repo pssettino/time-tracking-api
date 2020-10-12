@@ -98,6 +98,7 @@ public class TrackingService {
         if (timeTracking != null && !timeTracking.isEmpty()) {
             Supplier<Stream<TimeTracking>> timeTrackingStream = () -> timeTracking.stream();
 
+            // Si el ingreso y el egreso ya existe, no se puede fichar.
             boolean periodExist = timeTrackingStream.get().filter(it ->
                     request.getStart().equals(it.getStart()) &&
                             request.getEnd().equals(it.getEnd())
@@ -107,6 +108,7 @@ public class TrackingService {
                 throw new TimeTrackingException("Period does exist");
             }
 
+            // Si ingreso o el egreso esta dentro de un periodo ya existente, no se puede fichar.
             boolean isInvalidPeriod = timeTrackingStream.get().filter(it ->
                     (request.getStart().after(it.getStart()) &&
                             request.getStart().before(it.getEnd())) ||
