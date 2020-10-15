@@ -78,7 +78,7 @@ public class TrackingServiceTest {
         tracking.get().setTimeTracking(list);
         Mockito.when(trackingRepository.findByDocumentNumber(Mockito.anyInt())).thenReturn(tracking);
         Mockito.when(trackingRepository.save(Mockito.any())).thenReturn(tracking);
-        Mockito.when(usersApiClient.findEmployeeByDocumentNumber(Mockito.anyInt())).thenReturn(1);
+        Mockito.when(usersApiClient.findEmployeeByDocumentNumber(Mockito.anyInt())).thenReturn("1");
         Mockito.when(usersApiClient.findAbsenceByDocumentNumber(Mockito.anyInt())).thenReturn(null);
 
         Shift shift = new Shift();
@@ -88,7 +88,7 @@ public class TrackingServiceTest {
             days.add(i);
         }
         shift.setDaysOfWeek(days);
-        Mockito.when(usersApiClient.findShiftByShiftId(Mockito.anyInt())).thenReturn(shift);
+        Mockito.when(usersApiClient.findShiftByShiftId(Mockito.anyString())).thenReturn(shift);
 
 
         // WHEN
@@ -152,7 +152,7 @@ public class TrackingServiceTest {
         optionalTracking.get().setTimeTracking(list);
         Mockito.when(trackingRepository.findByDocumentNumber(Mockito.anyInt())).thenReturn(optionalTracking);
         Mockito.when(trackingRepository.save(Mockito.any())).thenReturn(tracking);
-        Mockito.when(usersApiClient.findEmployeeByDocumentNumber(Mockito.anyInt())).thenReturn(1);
+        Mockito.when(usersApiClient.findEmployeeByDocumentNumber(Mockito.anyInt())).thenReturn("1");
         Mockito.when(usersApiClient.findAbsenceByDocumentNumber(Mockito.anyInt())).thenReturn(null);
 
         Shift shift = new Shift();
@@ -162,7 +162,7 @@ public class TrackingServiceTest {
             days.add(i);
         }
         shift.setDaysOfWeek(days);
-        Mockito.when(usersApiClient.findShiftByShiftId(Mockito.anyInt())).thenReturn(shift);
+        Mockito.when(usersApiClient.findShiftByShiftId(Mockito.anyString())).thenReturn(shift);
 
 
         // WHEN

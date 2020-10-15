@@ -19,7 +19,7 @@ public class Employee implements Serializable {
     private List<String> telephones;
     private String cuil;
     private Date birthday;
-    private Integer shiftId;
+    private String shiftId;
     private String imageProfile;
     private Boolean extraHoursAvailable;
 }

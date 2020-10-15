@@ -1,5 +1,6 @@
 package com.scrumbox.mm.timetrackingapi.service;
 
+import com.google.common.base.Strings;
 import com.scrumbox.mm.timetrackingapi.client.UsersApiClient;
 import com.scrumbox.mm.timetrackingapi.exception.TimeTrackingException;
 import com.scrumbox.mm.timetrackingapi.model.*;
@@ -217,9 +218,9 @@ public class TrackingService {
 
     private Boolean hasValidShift(Integer documentNumber, TimeTracking timeTracking) {
         try {
-            Integer shitId = usersApiClient.findEmployeeByDocumentNumber(documentNumber);
+            String shitId = usersApiClient.findEmployeeByDocumentNumber(documentNumber);
 
-            if(shitId ==  null) {
+            if(Strings.isNullOrEmpty(shitId)) {
                 return false;
             }
 

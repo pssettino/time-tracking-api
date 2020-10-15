@@ -63,7 +63,7 @@ public class UsersApiClient {
         }
     }
 
-    public Integer findEmployeeByDocumentNumber(Integer documentNumber) throws UsersApiClientException {
+    public String findEmployeeByDocumentNumber(Integer documentNumber) throws UsersApiClientException {
         try {
             InstanceInfo userInstance = eurekaClient.getApplication("users-api").getInstances().get(0);
 
@@ -81,11 +81,11 @@ public class UsersApiClient {
         }
     }
 
-    public Shift findShiftByShiftId(Integer shiftId) throws UsersApiClientException {
+    public Shift findShiftByShiftId(String shiftId) throws UsersApiClientException {
         try {
             InstanceInfo userInstance = eurekaClient.getApplication("users-api").getInstances().get(0);
 
-            String serviceUrl = String.format("http://%s:%s/api/shifts/%d", userInstance.getIPAddr(), userInstance.getPort(), shiftId);
+            String serviceUrl = String.format("http://%s:%s/api/shifts/%s", userInstance.getIPAddr(), userInstance.getPort(), shiftId);
 
             ResponseEntity<Shift> response = restTemplate.getForEntity(serviceUrl, Shift.class);
 
