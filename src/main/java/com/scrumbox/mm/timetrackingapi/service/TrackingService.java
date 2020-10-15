@@ -105,7 +105,7 @@ public class TrackingService {
             ).count() > 0;
 
             if (periodExist) {
-                throw new TimeTrackingException("Period does exist");
+                throw new TimeTrackingException("Same period!");
             }
 
             // Si ingreso o el egreso esta dentro de un periodo ya existente, no se puede fichar.
@@ -144,7 +144,7 @@ public class TrackingService {
             log.info(String.format("El numero de documento: %s fichó el día %s que es el turno incorrecto",
                     documentNumber.toString(), startTime.toDate().toString())
             );
-            throw new TimeTrackingException("Turno incorrecto!");
+            throw new TimeTrackingException("Wrong Shift!");
         }
 
         List<AbsenceDetail> absenceDetails = getAbsenceDetails(documentNumber);
@@ -154,7 +154,7 @@ public class TrackingService {
             log.info(String.format("El numero de documento: %s fichó el día %s que tiene justificado el día por ausencia",
                     documentNumber.toString(), startTime.toDate().toString())
             );
-            throw new TimeTrackingException("No puede fichar si tiene justificado el día por ausencia!");
+            throw new TimeTrackingException("You can't track with absence!");
         }
 
         if (absenceDetails != null && hasSanction(documentNumber, act, absenceDetails)) {
@@ -162,7 +162,7 @@ public class TrackingService {
             log.info(String.format("El numero de documento: %s fichó el día %s que tiene una sación vigente",
                     documentNumber.toString(), startTime.toDate().toString())
             );
-            throw new TimeTrackingException("No puede fichar si tiene está sancionado!");
+            throw new TimeTrackingException("You can't track with sanction!");
         }
     }
 

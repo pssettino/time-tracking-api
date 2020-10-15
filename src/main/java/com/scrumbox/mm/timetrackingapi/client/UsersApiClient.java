@@ -32,7 +32,7 @@ public class UsersApiClient {
     public Absence findAbsenceByDocumentNumber(Integer documentNumber) throws UsersApiClientException {
         try {
             InstanceInfo userInstance = eurekaClient.getApplication("users-api").getInstances().get(0);
-            String serviceUrl = String.format("http://%s:%s/api/absences/%s", userInstance.getIPAddr(), userInstance.getPort(), documentNumber.toString());
+            String serviceUrl = String.format("http://%s:%s/api/absences/dni/%s", userInstance.getIPAddr(), userInstance.getPort(), documentNumber.toString());
 
             log.info("User service url: {}", serviceUrl);
 
@@ -67,7 +67,7 @@ public class UsersApiClient {
         try {
             InstanceInfo userInstance = eurekaClient.getApplication("users-api").getInstances().get(0);
 
-            String serviceUrl = String.format("http://%s:%s/api/employees/%d", userInstance.getIPAddr(), userInstance.getPort(), documentNumber);
+            String serviceUrl = String.format("http://%s:%s/api/employees/dni/%d", userInstance.getIPAddr(), userInstance.getPort(), documentNumber);
 
             ResponseEntity<Employee> response = restTemplate.getForEntity(serviceUrl, Employee.class);
 
@@ -85,7 +85,7 @@ public class UsersApiClient {
         try {
             InstanceInfo userInstance = eurekaClient.getApplication("users-api").getInstances().get(0);
 
-            String serviceUrl = String.format("http://%s:%s/api/shift/%d", userInstance.getIPAddr(), userInstance.getPort(), shiftId);
+            String serviceUrl = String.format("http://%s:%s/api/shifts/%d", userInstance.getIPAddr(), userInstance.getPort(), shiftId);
 
             ResponseEntity<Shift> response = restTemplate.getForEntity(serviceUrl, Shift.class);
 
